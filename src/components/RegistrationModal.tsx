@@ -1,0 +1,291 @@
+import React, { useState } from 'react';
+import { X, Sparkles, User, Mail, Phone, Book, Hash, ShieldCheck } from 'lucide-react';
+
+interface RegistrationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  preSelectedType: 'workshop' | 'competition' | 'accommodation';
+  preSelectedItem: any;
+}
+
+const RegistrationModal: React.FC<RegistrationModalProps> = ({
+  isOpen,
+  onClose,
+  preSelectedType,
+  preSelectedItem
+}) => {
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [college, setCollege] = useState('');
+  const [rollNo, setRollNo] = useState('');
+  const [days, setDays] = useState(1);
+  const [checkIn, setCheckIn] = useState('');
+
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage('');
+
+    try {
+      // Build items selected structure
+      const itemsSelected = {
+        workshops: preSelectedType === 'workshop' ? [preSelectedItem._id || preSelectedItem.id] : [],
+        competitions: preSelectedType === 'competition' ? [preSelectedItem._id || preSelectedItem.id] : [],
+        accommodation: preSelectedType === 'accommodation' ? {
+          option: preSelectedItem._id || preSelectedItem.id,
+          days: days,
+          checkIn: checkIn
+        } : undefined
+      };
+
+      const userDetails = { fullName, email, phone, college, rollNo };
+
+      // 1. Initiate Payment Order on backend
+      const initiateRes = await fetch('http://localhost:5000/api/payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userDetails, itemsSelected })
+      });
+
+      if (!initiateRes.ok) {
+        const errorData = await initiateRes.json();
+        throw new Error(errorData.message || 'Payment initiation failed.');
+      }
+
+      const orderData = await initiateRes.json();
+
+      // 2. Open Razorpay Checkout popup
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'ADHYAYAN 2026',
+        description: `Registration for ${preSelectedItem.title || preSelectedItem.type}`,
+        order_id: orderData.orderId,
+        prefill: {
+          name: fullName,
+          email: email,
+          contact: phone
+        },
+        theme: {
+          color: '#0ea5e9' // sky-500
+        },
+        handler: async function (response: any) {
+          setLoading(true);
+          try {
+            // 3. Verify signature on backend
+            const verifyRes = await fetch('http://localhost:5000/api/payment/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                registrationId: orderData.registrationId,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+
+            if (!verifyRes.ok) {
+              throw new Error('Payment verification failed.');
+            }
+
+            setSuccess(true);
+            alert("Registration and Payment Successful! A confirmation receipt has been sent to your email.");
+          } catch (verifyErr: any) {
+            setErrorMessage(verifyErr.message || 'Signature verification failed.');
+          } finally {
+            setLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+          }
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Something went wrong. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+      <div className="relative w-full max-w-lg overflow-hidden bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-white max-h-[90vh] overflow-y-auto">
+        
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          disabled={loading}
+          className="absolute right-6 top-6 p-2 rounded-full bg-slate-950/40 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {success ? (
+          <div className="text-center py-10 space-y-6">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+              <ShieldCheck className="h-10 w-10" />
+            </div>
+            <h3 className="text-2xl font-bold font-outfit text-white">Registration Successful!</h3>
+            <p className="text-slate-400 font-jakarta text-sm leading-relaxed max-w-xs mx-auto">
+              Your payment is verified. A receipt slip has been dispatched to your email address: <strong className="text-slate-200">{email}</strong>.
+            </p>
+            <button
+              onClick={onClose}
+              className="px-8 py-3 bg-green-500 hover:bg-green-400 text-black font-bold rounded-xl transition-all"
+            >
+              Done
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Header */}
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 text-xs font-semibold uppercase tracking-wider border border-sky-500/20 mb-3">
+                <Sparkles className="h-3.5 w-3.5" />
+                Fest Registration
+              </span>
+              <h2 className="text-2xl font-bold font-outfit">
+                Register for {preSelectedItem.title || preSelectedItem.type}
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Enter your details to initiate transaction payment.
+              </p>
+            </div>
+
+            {errorMessage && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl">
+                {errorMessage}
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-3">
+                <div className="relative">
+                  <User className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Full Name"
+                    className="w-full bg-slate-950 border border-slate-800 pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email Address"
+                    className="w-full bg-slate-950 border border-slate-800 pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                  <input
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Phone Number"
+                    className="w-full bg-slate-950 border border-slate-800 pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Book className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                  <input
+                    type="text"
+                    required
+                    value={college}
+                    onChange={(e) => setCollege(e.target.value)}
+                    placeholder="College Name"
+                    className="w-full bg-slate-950 border border-slate-800 pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Hash className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
+                  <input
+                    type="text"
+                    required
+                    value={rollNo}
+                    onChange={(e) => setRollNo(e.target.value)}
+                    placeholder="Roll Number / ID"
+                    className="w-full bg-slate-950 border border-slate-800 pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                  />
+                </div>
+
+                {/* Additional Accommodation Controls */}
+                {preSelectedType === 'accommodation' && (
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1 font-semibold">CHECK-IN DATE</label>
+                      <input
+                        type="date"
+                        required
+                        value={checkIn}
+                        onChange={(e) => setCheckIn(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-sky-500/50 text-slate-300"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1 font-semibold">NO. OF DAYS</label>
+                      <input
+                        type="number"
+                        required
+                        min={1}
+                        value={days}
+                        onChange={(e) => setDays(parseInt(e.target.value) || 1)}
+                        className="w-full bg-slate-950 border border-slate-800 px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-sky-500/50 text-white"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Cost summary */}
+              <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-2xl flex justify-between items-center text-sm mt-6">
+                <span className="text-slate-400 font-semibold">Payable Total</span>
+                <span className="text-xl font-bold text-sky-400">
+                  ₹{preSelectedType === 'accommodation' ? preSelectedItem.pricePerDay * days : preSelectedItem.price}
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-black font-extrabold rounded-xl transition-all shadow-lg shadow-sky-500/10 flex items-center justify-center"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
+                ) : (
+                  'Pay & Register'
+                )}
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default RegistrationModal;

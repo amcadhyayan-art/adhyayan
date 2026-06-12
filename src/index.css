@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-opensans text-slate-700 bg-slate-50 antialiased overflow-x-hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-montserrat font-bold text-slate-900 tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-7xl leading-tight;
+  }
+  
+  h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl leading-tight;
+  }
+  
+  h3 {
+    @apply text-2xl md:text-3xl lg:text-4xl leading-tight;
+  }
+  
+  h4 {
+    @apply text-xl md:text-2xl leading-snug;
+  }
+
+  .heading-special {
+    @apply font-outfit text-4xl md:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-montserrat font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white;
+  }
+  
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-sky-600 to-blue-700 text-white hover:from-sky-500 hover:to-blue-600 shadow-md shadow-sky-600/10 hover:shadow-sky-500/20 focus:ring-sky-600 transform hover:-translate-y-0.5;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 focus:ring-slate-200 transform hover:-translate-y-0.5;
+  }
+
+  .section {
+    @apply py-16 md:py-24 relative overflow-hidden;
+  }
+
+  .container {
+    @apply px-4 mx-auto max-w-7xl relative z-10;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-slate-100 overflow-hidden transition-all duration-300 hover:border-sky-300/40 hover:shadow-md shadow-sm;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-lg rounded-3xl border border-slate-200/60 shadow-lg p-8;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-slate-900 via-sky-600 to-blue-700 bg-clip-text text-transparent;
+  }
+}
