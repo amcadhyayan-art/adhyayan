@@ -8,7 +8,7 @@ const HeroSection: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const targetDate = new Date('2026-06-23T09:00:00').getTime();
+    const targetDate = new Date('2026-07-09T09:00:00').getTime();
 
     const interval = setInterval(() => {
       const now = new Date().getTime();
@@ -125,7 +125,7 @@ const HeroSection: React.FC = () => {
             className="flex items-center justify-center gap-2.5 mb-10 text-slate-300 font-medium"
           >
             <CalendarDays className="h-5 w-5 text-sky-400" />
-            <span className="font-montserrat text-sm md:text-base">June 23-28, 2026 | Andhra Medical College, Visakhapatnam</span>
+            <span className="font-montserrat text-sm md:text-base">July 9-16, 2026 | Andhra Medical College, Visakhapatnam</span>
           </motion.div>
 
           <motion.div

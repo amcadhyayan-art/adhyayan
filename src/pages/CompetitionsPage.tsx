@@ -111,8 +111,8 @@ const defaultCompetitions: any[] = [
       rules: [
         'Pure vector animations are not accepted; must involve live presentation/acting',
         'Abusive language, copyrighted music, and censored material strictly prohibited',
-        'Top 3 selected films will be screened live during Movie Night (28th June)',
-        'All final reel file submissions must be completed by 25th June'
+        'Top 3 selected films will be screened live during Movie Night (14th July)',
+        'All final reel file submissions must be completed by 11th July'
       ],
       guidelines: [
         'Judged on conceptual accuracy, acting/expression, sound clarity, and cinematography'
@@ -187,7 +187,7 @@ const defaultCompetitions: any[] = [
         'Submissions must include a 2-line conceptual description',
         'All photographs must be captured on-campus during the fest week',
         'Images must remain unedited (no heavy manipulation/compositing)',
-        'Final submissions must be uploaded by 25th June'
+        'Final submissions must be uploaded by 11th July'
       ],
       contact: {
         name: 'Farooq',

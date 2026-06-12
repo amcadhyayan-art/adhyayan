@@ -39,7 +39,7 @@ const HomePage: React.FC = () => {
       title: 'Surgery Workshop',
       category: 'Clinical Core',
       description: 'Hands-on practice on suture techniques, incisions, and advanced surgical procedures.',
-      date: 'June 24-27, 2026',
+      date: 'July 10-13, 2026',
       image: '/workshops/Surgery.png',
     },
     {
@@ -47,7 +47,7 @@ const HomePage: React.FC = () => {
       title: 'Anaesthesia Workshop',
       category: 'Clinical Core',
       description: 'Advanced simulation training in airway management and general anaesthesia administration.',
-      date: 'June 27-28, 2026',
+      date: 'July 13-14, 2026',
       image: '/workshops/Anesthesia.png',
     },
     {
@@ -55,7 +55,7 @@ const HomePage: React.FC = () => {
       title: 'Orthopaedics Workshop',
       category: 'Specialties',
       description: 'Learn plastering, casting techniques, joint examinations, and bone plating.',
-      date: 'June 26, 2026',
+      date: 'July 12, 2026',
       image: '/workshops/Orthopedics.png',
     },
   ];
@@ -223,7 +223,7 @@ const HomePage: React.FC = () => {
                 <div className="p-3 bg-sky-500/10 text-sky-600 rounded-full mb-4">
                   <Calendar className="h-6 w-6" />
                 </div>
-                <h4 className="font-outfit font-bold text-base mb-1.5 text-slate-900">6 Days of Learning</h4>
+                <h4 className="font-outfit font-bold text-base mb-1.5 text-slate-900">8 Days of Learning</h4>
                 <p className="text-xs text-slate-500 font-jakarta leading-relaxed">Workshops, diagnostic labs, and networking</p>
               </motion.div>
 

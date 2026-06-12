@@ -71,7 +71,7 @@ const RefundPolicyPage: React.FC = () => {
                   <h2 className="text-xl font-montserrat font-bold text-slate-900 m-0">Transfers & Substitutions</h2>
                 </div>
                 <p className="leading-relaxed">
-                  While refund requests will not be entertained, tickets/registrations may be transferred to another eligible individual (e.g., another medical student from the same institution) upon formal request. To request a registration transfer, please contact the organizing committee at <a href="mailto:andhramedicalcollege100@gmail.com" className="text-sky-600 hover:underline">andhramedicalcollege100@gmail.com</a> at least <strong>48 hours prior</strong> to the start of the event.
+                  While refund requests will not be entertained, tickets/registrations may be transferred to another eligible individual (e.g., another medical student from the same institution) upon formal request. To request a registration transfer, please contact the organizing committee at <a href="mailto:amcadhyayan@gmail.com" className="text-sky-600 hover:underline">amcadhyayan@gmail.com</a> at least <strong>48 hours prior</strong> to the start of the event.
                 </p>
               </div>
 
