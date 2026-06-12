@@ -16,6 +16,7 @@ import {
   CreditCard,
   Calendar
 } from 'lucide-react';
+import { API_BASE_URL } from '../../config';
 
 // Interfaces
 interface Workshop {
@@ -142,19 +143,19 @@ const AdminDashboard: React.FC = () => {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       
-      const workshopsRes = await fetch('http://localhost:5000/api/workshops');
+      const workshopsRes = await fetch(`${API_BASE_URL}/api/workshops`);
       const workshopsData = await workshopsRes.json();
       setWorkshops(workshopsData);
 
-      const competitionsRes = await fetch('http://localhost:5000/api/competitions');
+      const competitionsRes = await fetch(`${API_BASE_URL}/api/competitions`);
       const competitionsData = await competitionsRes.json();
       setCompetitions(competitionsData);
 
-      const accommodationRes = await fetch('http://localhost:5000/api/accommodation');
+      const accommodationRes = await fetch(`${API_BASE_URL}/api/accommodation`);
       const accommodationData = await accommodationRes.json();
       setAccommodation(accommodationData);
 
-      const registrationsRes = await fetch('http://localhost:5000/api/admin/registrations', { headers });
+      const registrationsRes = await fetch(`${API_BASE_URL}/api/admin/registrations`, { headers });
       if (registrationsRes.status === 401 || registrationsRes.status === 403) {
         handleLogout();
         return;
@@ -185,7 +186,7 @@ const AdminDashboard: React.FC = () => {
       let bodyData: any = {};
 
       if (modalType === 'workshop') {
-        url = 'http://localhost:5000/api/admin/workshops';
+        url = `${API_BASE_URL}/api/admin/workshops`;
         bodyData = {
           ...workshopForm,
           category: isCustomCategory ? customCategory : (workshopForm.category || 'General'),
@@ -197,7 +198,7 @@ const AdminDashboard: React.FC = () => {
           }).filter(c => c.name !== '')
         };
       } else if (modalType === 'competition') {
-        url = 'http://localhost:5000/api/admin/competitions';
+        url = `${API_BASE_URL}/api/admin/competitions`;
         bodyData = {
           ...competitionForm,
           category: isCustomCategory ? customCategory : (competitionForm.category || 'General'),
@@ -212,7 +213,7 @@ const AdminDashboard: React.FC = () => {
           teamSize: { min: competitionForm.minTeam, max: competitionForm.maxTeam }
         };
       } else if (modalType === 'accommodation') {
-        url = 'http://localhost:5000/api/admin/accommodation';
+        url = `${API_BASE_URL}/api/admin/accommodation`;
         bodyData = accommodationForm;
       }
 
@@ -240,7 +241,7 @@ const AdminDashboard: React.FC = () => {
   const handleDeleteItem = async (type: 'workshop' | 'competition' | 'accommodation', id: string) => {
     if (!window.confirm('Are you sure you want to delete this item?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/${type}s/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/${type}s/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

@@ -5,6 +5,7 @@ import { Camera, Video, MessageSquare, PenTool, Brain, Search, Presentation, Tro
 import { InteractiveTravelCard } from '../components/ui/3d-card';
 import SectionTitle from '../components/ui/SectionTitle';
 import RegistrationModal from '../components/RegistrationModal';
+import { API_BASE_URL } from '../config';
 
 interface Competition {
   id: string;
@@ -204,7 +205,7 @@ const CompetitionsPage: React.FC = () => {
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/competitions')
+    fetch(`${API_BASE_URL}/api/competitions`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch');
         return res.json();

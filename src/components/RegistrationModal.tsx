@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Sparkles, User, Mail, Phone, Book, Hash, ShieldCheck } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -48,7 +49,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
       const userDetails = { fullName, email, phone, college, rollNo };
 
       // 1. Initiate Payment Order on backend
-      const initiateRes = await fetch('http://localhost:5000/api/payment/initiate', {
+      const initiateRes = await fetch(`${API_BASE_URL}/api/payment/initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userDetails, itemsSelected })
@@ -81,7 +82,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
           setLoading(true);
           try {
             // 3. Verify signature on backend
-            const verifyRes = await fetch('http://localhost:5000/api/payment/verify', {
+            const verifyRes = await fetch(`${API_BASE_URL}/api/payment/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
