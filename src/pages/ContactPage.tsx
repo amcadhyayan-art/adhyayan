@@ -9,7 +9,7 @@ const ContactPage: React.FC = () => {
     {
       icon: <Mail className="h-6 w-6 text-accent" />,
       title: 'Email',
-      details: ['andhramedicalcollege100@gmail.com']
+      details: ['amcadhyayan@gmail.com']
     },
     {
       icon: <Phone className="h-6 w-6 text-accent" />,

@@ -1028,7 +1028,7 @@ const AdminDashboard: React.FC = () => {
                       <div>
                         <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Date</label>
                         <input 
-                          type="text" placeholder="e.g. June 24"
+                          type="text" placeholder="e.g. July 10"
                           value={workshopForm.date}
                           onChange={e => setWorkshopForm({ ...workshopForm, date: e.target.value })}
                           className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"

@@ -14,7 +14,7 @@ const defaultWorkshops = [
     title: 'Ophthalmology Workshop',
     category: 'Specialties',
     description: 'Comprehensive training in eye examination, fundoscopy, and basic surgical techniques.',
-    date: 'June 24, 2026',
+    date: 'July 10, 2026',
     venue: 'Govt. Regional Eye Hospital, RAMA TALKIES',
     price: 599,
     image: '/workshops/Ophthalmology.png'
@@ -25,7 +25,7 @@ const defaultWorkshops = [
     title: 'Orthopaedics Workshop',
     category: 'Specialties',
     description: 'Learn essential splinting, bandaging, casting techniques, and fracture management.',
-    date: 'June 26, 2026',
+    date: 'July 12, 2026',
     time: 'AM & PM Sessions',
     venue: 'AMCOSA',
     price: 499,
@@ -37,7 +37,7 @@ const defaultWorkshops = [
     title: 'Anaesthesia Workshop',
     category: 'Clinical',
     description: 'Comprehensive training in anaesthesia administration, intubation, and basic life support.',
-    date: 'June 27-28, 2026',
+    date: 'July 13-14, 2026',
     time: 'AM & PM Sessions',
     venue: 'NELS Skill Lab, AMC',
     price: 449,
@@ -49,7 +49,7 @@ const defaultWorkshops = [
     title: 'Surgery Workshop',
     category: 'Clinical',
     description: 'Hands-on training in basic surgical knotting, suturing techniques, and wound management.',
-    date: 'June 24-27, 2026',
+    date: 'July 10-13, 2026',
     venue: 'AMCOSA',
     price: 499,
     image: '/workshops/Surgery.png'
@@ -60,7 +60,7 @@ const defaultWorkshops = [
     title: 'ObGyn Workshop - 1',
     category: 'Specialties',
     description: 'Essential obstetric and gynecological procedures training, including deliveries.',
-    date: 'June 25-26, 2026',
+    date: 'July 11-12, 2026',
     venue: 'AMCOSA',
     price: 299,
     image: '/workshops/Gynaecology.png'
@@ -71,7 +71,7 @@ const defaultWorkshops = [
     title: 'ObGyn Workshop - 2',
     category: 'Specialties',
     description: 'Advanced obstetric and gynecological procedures training and emergency management.',
-    date: 'June 27-28, 2026',
+    date: 'July 13-14, 2026',
     venue: 'AMCOSA',
     price: 299,
     image: '/workshops/Gynaecology.png'
@@ -82,7 +82,7 @@ const defaultWorkshops = [
     title: 'ENT Workshop',
     category: 'Specialties',
     description: 'Comprehensive training in otorhinolaryngology diagnostics and clinical procedures.',
-    date: 'June 26, 2026',
+    date: 'July 12, 2026',
     venue: 'Govt. ENT Hospital, Pedda Waltair',
     price: 349,
     image: '/workshops/Ent.png'
@@ -93,7 +93,7 @@ const defaultWorkshops = [
     title: 'Pediatrics Workshop',
     category: 'Specialties',
     description: 'Essential pediatric resuscitation, clinical care, and developmental assessment training.',
-    date: 'June 25, 2026',
+    date: 'July 11, 2026',
     venue: 'Dept. of Pediatrics, AMC',
     price: 499,
     image: '/workshops/Pediatrics.png'
@@ -104,7 +104,7 @@ const defaultWorkshops = [
     title: 'Community Medicine Workshop',
     category: 'Specialties',
     description: 'Training in community health assessment, epidemiology, and preventive medicine.',
-    date: 'June 25-26, 2026',
+    date: 'July 11-12, 2026',
     venue: 'AMCOSA',
     price: 349,
     image: '/workshops/Community_Medicine.png'
@@ -115,7 +115,7 @@ const defaultWorkshops = [
     title: 'Forensic Medicine Workshop',
     category: 'Specialties',
     description: 'Hands-on forensic medicine, clinical toxicology, and basic autopsy observation.',
-    date: 'June 24-27, 2026',
+    date: 'July 10-13, 2026',
     venue: 'Mortuary, Dept. of FMT, AMC KGH',
     price: 649,
     image: '/workshops/Forensic_Medicine.png'
@@ -126,7 +126,7 @@ const defaultWorkshops = [
     title: 'Medicine Workshop',
     category: 'Clinical',
     description: 'Comprehensive general medical skills, ECG analysis, and patient assessment training.',
-    date: 'June 24, 2026',
+    date: 'July 10, 2026',
     venue: 'AMCOSA',
     price: 399,
     image: '/workshops/Medicine.png'
