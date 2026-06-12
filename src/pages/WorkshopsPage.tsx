@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, MapPin, ArrowRight, ShieldCheck, Sparkles, BookOpen } from 'lucide-react';
 import { InteractiveTravelCard } from '../components/ui/3d-card';
 import SectionTitle from '../components/ui/SectionTitle';
+import { API_BASE_URL } from '../config';
 
 const defaultWorkshops = [
   {
@@ -138,7 +139,7 @@ const WorkshopsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('All');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/workshops')
+    fetch(`${API_BASE_URL}/api/workshops`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch');
         return res.json();

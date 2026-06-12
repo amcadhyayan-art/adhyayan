@@ -4,6 +4,7 @@ import RegistrationModal from '../components/RegistrationModal';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, MapPin, Phone, ArrowLeft, Users } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 interface Slot {
   id: string;
@@ -443,7 +444,7 @@ const WorkshopDetailsPage: React.FC = () => {
 
   React.useEffect(() => {
     if (!id) return;
-    fetch(`http://localhost:5000/api/workshops/${id}`)
+    fetch(`${API_BASE_URL}/api/workshops/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch');
         return res.json();
