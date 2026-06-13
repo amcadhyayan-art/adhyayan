@@ -56,13 +56,13 @@ const Header: React.FC<HeaderProps> = ({ isScrolled }) => {
       <div className="container flex items-center justify-between">
         <Link 
           to="/" 
-          className="flex items-center gap-3 font-montserrat font-bold text-xl text-white group"
+          className="flex items-center gap-2 sm:gap-3 font-montserrat font-bold text-base sm:text-lg md:text-xl text-white group"
         >
           <span className="flex items-center">
             <img 
               src={logo}
               alt="AMC Logo" 
-              className="h-12 w-12"
+              className="h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11"
             />
           </span>
           <span className="tracking-tight text-white group-hover:text-sky-400 transition-colors">
@@ -71,13 +71,13 @@ const Header: React.FC<HeaderProps> = ({ isScrolled }) => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-3 lg:space-x-6">
           {navItems.map((item) => (
             <NavLink
               key={item.name}
               to={item.path}
               className={({ isActive }) => 
-                `font-montserrat text-sm font-medium transition-colors duration-300 border-b-2 pb-1 ${
+                `font-montserrat text-xs lg:text-sm font-medium transition-colors duration-300 border-b-2 pb-1 ${
                   isActive 
                     ? 'text-sky-400 font-semibold border-sky-400' 
                     : 'text-slate-300 hover:text-sky-400 border-transparent'
