@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { BookOpen, Award, Lightbulb, Users, Building, GraduationCap, Quote, CheckCircle, Star, Heart } from 'lucide-react';
 import sandhyaImage from '../assets/images/about/dr-sandhya-devi.jpeg';
 import sivanandhaImage from '../assets/images/about/dr-sivanandha.jpeg';
-import manmadhaRaoImage from '../assets/images/about/dr-manmadha-rao.jpeg';
 import krishnaveniImage from '../assets/images/about/dr-krishnaveni.jpeg';
 import rajendraPrasadImage from '../assets/images/about/dr-rajendra-prasad.jpeg';
 import campusImg1 from '../assets/images/about/1.jpeg';
@@ -87,13 +86,13 @@ const AboutPage: React.FC = () => {
       description: 'Overseeing hospital operations and ensuring world-class excellence in patient care.',
     },
     {
-      name: 'Dr. V. Manmadha Rao',
-      position: 'Vice-Principal (Academic)',
-      additionalRole: 'Prof & HOD of Surgery, AMC',
-      qualifications: 'MS, FIAGES',
-      image: manmadhaRaoImage,
-      quote: "Excellence in medical education comes through practical experience and theoretical knowledge.",
-      description: 'Driving academic excellence through surgical innovation and evidence-based pedagogy.',
+      name: 'Dr. A. Krishnaveni',
+      position: 'General Vice-Principal',
+      additionalRole: 'Prof & HOD of Community Medicine, AMC',
+      qualifications: 'MD',
+      image: krishnaveniImage,
+      quote: "Community health is the foundation upon which a healthy society is built.",
+      description: 'Leading community medicine initiatives and expanding public health programs.',
     },
     {
       name: 'Dr. Rajendra Prasad',
@@ -103,16 +102,7 @@ const AboutPage: React.FC = () => {
       image: rajendraPrasadImage,
       quote: "Administrative excellence supports and sustains academic achievement.",
       description: 'Managing administrative operations and leading pediatric surgical services.',
-    },
-    {
-      name: 'Dr. A. Krishnaveni',
-      position: 'General Vice-Principal',
-      additionalRole: 'Prof & HOD of Community Medicine, AMC',
-      qualifications: 'MD',
-      image: krishnaveniImage,
-      quote: "Community health is the foundation upon which a healthy society is built.",
-      description: 'Leading community medicine initiatives and expanding public health programs.',
-    },
+    }
   ];
 
   const campusMedia = [
@@ -134,7 +124,7 @@ const AboutPage: React.FC = () => {
         {/* Background image with overlay */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('/about/campus_hero.png')` }}
+          style={{ backgroundImage: `url('/HEROBG.jpeg')` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900" />
 
@@ -150,7 +140,7 @@ const AboutPage: React.FC = () => {
               <CheckCircle className="h-3.5 w-3.5 text-sky-400" />
               Est. 1923 · A Century of Medical Excellence
             </span>
-            <h1 className="font-playfair font-bold text-5xl md:text-7xl leading-tight mb-6">
+            <h1 className="font-playfair font-bold text-5xl md:text-7xl leading-tight mb-6 text-white">
               About <span className="text-sky-400">ADHYAYAN</span> 2026
             </h1>
             <p className="text-xl text-white/60 font-jakarta max-w-2xl mx-auto leading-relaxed">

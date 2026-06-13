@@ -43,7 +43,7 @@ const HeroSection: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="container relative z-10 pt-36 pb-20">
+      <div className="container relative z-10 pt-24 pb-12 md:pt-36 md:pb-20">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -51,12 +51,15 @@ const HeroSection: React.FC = () => {
             transition={{ duration: 0.6 }}
             className="flex justify-center mb-6"
           >
-            <div className="bg-white/5 border border-white/10 p-5 rounded-3xl shadow-glass backdrop-blur-md hover:border-sky-500/30 transition-all duration-300">
-              <img 
-                src={logo}
-                alt="AMC Logo" 
-                className="h-16 w-16 md:h-20 md:w-20 drop-shadow-[0_0_12px_rgba(6,182,212,0.4)]"
-              />
+            <div className="bg-white/5 border border-white/10 p-2 rounded-3xl shadow-glass backdrop-blur-md hover:border-sky-500/30 transition-all duration-300 w-64 sm:w-72 md:w-80 aspect-[16/9] overflow-hidden flex items-center justify-center">
+              <video 
+                autoPlay 
+                muted 
+                playsInline
+                className="w-full h-full object-contain rounded-2xl"
+              >
+                <source src="/logoanimation.mp4" type="video/mp4" />
+              </video>
             </div>
           </motion.div>
 
@@ -74,7 +77,7 @@ const HeroSection: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="font-outfit font-extrabold text-5xl md:text-6xl lg:text-8xl tracking-tight leading-none mb-6 text-white"
+            className="font-outfit font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight leading-tight mb-6 text-white"
           >
             ADHYAYAN <span className="bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-sm">2026</span>
           </motion.h1>

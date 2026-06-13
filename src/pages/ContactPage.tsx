@@ -14,7 +14,7 @@ const ContactPage: React.FC = () => {
     {
       icon: <Phone className="h-6 w-6 text-accent" />,
       title: 'Phone',
-      details: ['+91 7658943811']
+      details: ['+91 63037 29954']
     },
     {
       icon: <MapPin className="h-6 w-6 text-accent" />,

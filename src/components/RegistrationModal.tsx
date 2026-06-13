@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, User, Mail, Phone, Book, Hash, ShieldCheck } from 'lucide-react';
+import { X, Sparkles, User, Mail, Phone, Book, Hash, ShieldCheck, BedDouble, UtensilsCrossed } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 interface RegistrationModalProps {
@@ -22,6 +22,8 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [rollNo, setRollNo] = useState('');
   const [days, setDays] = useState(1);
   const [checkIn, setCheckIn] = useState('');
+  const [accommodationRequired, setAccommodationRequired] = useState(false);
+  const [foodRequired, setFoodRequired] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -52,7 +54,12 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
       const initiateRes = await fetch(`${API_BASE_URL}/api/payment/initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userDetails, itemsSelected })
+        body: JSON.stringify({
+          userDetails,
+          itemsSelected,
+          foodRequired: foodRequired ? 'yes' : 'no',
+          accommodationRequired: accommodationRequired ? 'yes' : 'no'
+        })
       });
 
       if (!initiateRes.ok) {
@@ -260,6 +267,87 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     </div>
                   </div>
                 )}
+
+                {/* Accommodation & Food Preference Toggles */}
+                <div className="pt-2 space-y-3">
+                  <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Additional Requirements</p>
+
+                  {/* Accommodation Toggle */}
+                  <label
+                    htmlFor="accommodation-toggle"
+                    className={`flex items-center justify-between gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                      accommodationRequired
+                        ? 'bg-sky-500/10 border-sky-500/40'
+                        : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${
+                        accommodationRequired ? 'bg-sky-500/20 text-sky-400' : 'bg-slate-800 text-slate-500'
+                      }`}>
+                        <BedDouble className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">Accommodation Required</p>
+                        <p className="text-xs text-slate-500">I need a place to stay during the fest</p>
+                      </div>
+                    </div>
+                    <div className="relative flex-shrink-0">
+                      <input
+                        id="accommodation-toggle"
+                        type="checkbox"
+                        checked={accommodationRequired}
+                        onChange={(e) => setAccommodationRequired(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className={`w-11 h-6 rounded-full transition-colors ${
+                        accommodationRequired ? 'bg-sky-500' : 'bg-slate-700'
+                      }`}>
+                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                          accommodationRequired ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Food Toggle */}
+                  <label
+                    htmlFor="food-toggle"
+                    className={`flex items-center justify-between gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                      foodRequired
+                        ? 'bg-emerald-500/10 border-emerald-500/40'
+                        : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${
+                        foodRequired ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'
+                      }`}>
+                        <UtensilsCrossed className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">Food Required</p>
+                        <p className="text-xs text-slate-500">I need meals during the fest</p>
+                      </div>
+                    </div>
+                    <div className="relative flex-shrink-0">
+                      <input
+                        id="food-toggle"
+                        type="checkbox"
+                        checked={foodRequired}
+                        onChange={(e) => setFoodRequired(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className={`w-11 h-6 rounded-full transition-colors ${
+                        foodRequired ? 'bg-emerald-500' : 'bg-slate-700'
+                      }`}>
+                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                          foodRequired ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               {/* Cost summary */}

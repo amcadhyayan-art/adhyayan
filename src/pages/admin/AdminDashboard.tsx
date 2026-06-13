@@ -14,7 +14,9 @@ import {
   Download, 
   X,
   CreditCard,
-  Calendar
+  Calendar,
+  BedDouble,
+  UtensilsCrossed
 } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 
@@ -77,6 +79,8 @@ interface Registration {
       checkIn: string;
     };
   };
+  foodRequired: string;          // 'yes' | 'no'
+  accommodationRequired: string; // 'yes' | 'no'
   payment: {
     orderId: string;
     paymentId: string;
@@ -1378,6 +1382,58 @@ const AdminDashboard: React.FC = () => {
                   <span className="text-sm font-semibold text-slate-200">
                     {selectedRegDetails.userDetails.rollNo || 'N/A'}
                   </span>
+                </div>
+              </div>
+
+              {/* Preferences: Accommodation & Food */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Participant Preferences</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Accommodation Required */}
+                  <div className={`flex items-center gap-3 p-4 rounded-xl border ${
+                    selectedRegDetails.accommodationRequired === 'yes'
+                      ? 'bg-sky-500/10 border-sky-500/30'
+                      : 'bg-slate-950/40 border-slate-800/60'
+                  }`}>
+                    <div className={`p-2 rounded-lg flex-shrink-0 ${
+                      selectedRegDetails.accommodationRequired === 'yes'
+                        ? 'bg-sky-500/20 text-sky-400'
+                        : 'bg-slate-800 text-slate-600'
+                    }`}>
+                      <BedDouble className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Accommodation</p>
+                      <p className={`text-sm font-bold ${
+                        selectedRegDetails.accommodationRequired === 'yes' ? 'text-sky-400' : 'text-slate-600'
+                      }`}>
+                        {selectedRegDetails.accommodationRequired === 'yes' ? 'Required' : 'Not Required'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Food Required */}
+                  <div className={`flex items-center gap-3 p-4 rounded-xl border ${
+                    selectedRegDetails.foodRequired === 'yes'
+                      ? 'bg-emerald-500/10 border-emerald-500/30'
+                      : 'bg-slate-950/40 border-slate-800/60'
+                  }`}>
+                    <div className={`p-2 rounded-lg flex-shrink-0 ${
+                      selectedRegDetails.foodRequired === 'yes'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'bg-slate-800 text-slate-600'
+                    }`}>
+                      <UtensilsCrossed className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Food</p>
+                      <p className={`text-sm font-bold ${
+                        selectedRegDetails.foodRequired === 'yes' ? 'text-emerald-400' : 'text-slate-600'
+                      }`}>
+                        {selectedRegDetails.foodRequired === 'yes' ? 'Required' : 'Not Required'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
