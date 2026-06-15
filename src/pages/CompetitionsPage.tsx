@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Video, MessageSquare, PenTool, Brain, Search, Presentation, Trophy, Calendar, Users, Clock, MapPin, X, Phone, Sparkles, AlertCircle, HelpCircle } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { InteractiveTravelCard } from '../components/ui/3d-card';
 import SectionTitle from '../components/ui/SectionTitle';
 import RegistrationModal from '../components/RegistrationModal';
@@ -198,11 +199,28 @@ const defaultCompetitions: any[] = [
 ];
 
 const CompetitionsPage: React.FC = () => {
+  const location = useLocation();
   const [selectedCompetition, setSelectedCompetition] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<string>('All');
+  
+  // Initialize active tab from URL query params or default to 'All'
+  const queryParams = new URLSearchParams(location.search);
+  const categoryFromUrl = queryParams.get('category');
+  const [activeTab, setActiveTab] = useState<string>(categoryFromUrl || 'All');
+
   const [competitions, setCompetitions] = useState<any[]>(defaultCompetitions);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+
+  // Update active tab if URL changes while on the same page
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const cat = params.get('category');
+    if (cat) {
+      setActiveTab(cat);
+    } else {
+      setActiveTab('All');
+    }
+  }, [location.search]);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/competitions`)

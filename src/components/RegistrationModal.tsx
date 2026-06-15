@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, User, Mail, Phone, Book, Hash, ShieldCheck, BedDouble, UtensilsCrossed } from 'lucide-react';
+import { X, Sparkles, User, Mail, Phone, Book, Hash, ShieldCheck, BedDouble, UtensilsCrossed, Clock } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 interface RegistrationModalProps {
@@ -24,6 +24,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [checkIn, setCheckIn] = useState('');
   const [accommodationRequired, setAccommodationRequired] = useState(false);
   const [foodRequired, setFoodRequired] = useState(false);
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(-1);
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -37,6 +38,14 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
     setErrorMessage('');
 
     try {
+      // Validate slot selection for workshops with multiple slots
+      const workshopSlots = preSelectedType === 'workshop' ? (preSelectedItem.slots || []) : [];
+      if (preSelectedType === 'workshop' && workshopSlots.length > 1 && selectedSlotIndex < 0) {
+        setErrorMessage('Please select a time slot to continue.');
+        setLoading(false);
+        return;
+      }
+
       // Build items selected structure
       const itemsSelected = {
         workshops: preSelectedType === 'workshop' ? [preSelectedItem._id || preSelectedItem.id] : [],
@@ -57,6 +66,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
         body: JSON.stringify({
           userDetails,
           itemsSelected,
+          selectedSlotIndex: selectedSlotIndex >= 0 ? selectedSlotIndex : (workshopSlots.length === 1 ? 0 : -1),
           foodRequired: foodRequired ? 'yes' : 'no',
           accommodationRequired: accommodationRequired ? 'yes' : 'no'
         })
@@ -240,6 +250,59 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     className="w-full bg-slate-950 border border-slate-800 pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
                   />
                 </div>
+
+                {/* Slot Picker — shown only for workshops that have multiple slots */}
+                {preSelectedType === 'workshop' && preSelectedItem.slots && preSelectedItem.slots.length > 0 && (
+                  <div className="pt-2 space-y-2">
+                    <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" /> Select Your Time Slot
+                    </p>
+                    <div className="space-y-2">
+                      {preSelectedItem.slots.map((slot: any, idx: number) => {
+                        const label  = typeof slot === 'string' ? slot.split(' | ')[0] : slot.label;
+                        const filled = typeof slot === 'object' ? (slot.slotsFilled ?? 0) : 0;
+                        const total  = typeof slot === 'object' ? (slot.slotsTotal ?? 50) : 50;
+                        const isFull = filled >= total;
+                        const isSelected = selectedSlotIndex === idx;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            disabled={isFull}
+                            onClick={() => setSelectedSlotIndex(idx)}
+                            className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
+                              isFull
+                                ? 'opacity-40 cursor-not-allowed bg-slate-950 border-slate-800'
+                                : isSelected
+                                ? 'bg-sky-500/15 border-sky-500/60 ring-1 ring-sky-500/40'
+                                : 'bg-slate-950 border-slate-800 hover:border-slate-600'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
+                                isSelected ? 'border-sky-500 bg-sky-500' : 'border-slate-600'
+                              }`}>
+                                {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                              </div>
+                              <span className={`text-sm font-medium ${
+                                isSelected ? 'text-sky-300' : isFull ? 'text-slate-600' : 'text-slate-200'
+                              }`}>{label}</span>
+                            </div>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              isFull
+                                ? 'bg-red-500/10 text-red-400'
+                                : filled / total > 0.8
+                                ? 'bg-orange-500/10 text-orange-400'
+                                : 'bg-emerald-500/10 text-emerald-400'
+                            }`}>
+                              {isFull ? 'FULL' : `${total - filled} left`}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Additional Accommodation Controls */}
                 {preSelectedType === 'accommodation' && (
