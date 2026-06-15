@@ -18,73 +18,65 @@ interface DaySchedule {
 const SchedulePage: React.FC = () => {
   const scheduleData: Record<string, DaySchedule> = {
     day1: {
-      date: '23',
-      title: 'MED HUNT',
-      sessions: []
+      date: '9',
+      title: 'July 9 - Thursday',
+      sessions: [
+        { time: 'Morning (9AM-12PM)', events: [] },
+        { time: 'Afternoon', events: ['FLASH MOB'] }
+      ]
     },
     day2: {
-      date: '24',
+      date: '10',
+      title: 'July 10 - Friday',
       sessions: [
-        {
-          time: '9am to 12 pm',
-          events: ['Medicine', 'Surgery', 'Opthal', 'Build your diagnosis']
-        },
-        {
-          time: '1pm to 4 pm',
-          events: ['Medicine', 'Surgery', 'FMT', 'Housie']
-        }
+        { time: 'Morning', events: ['MEDICINE', 'SURGERY', 'OPTHA', 'BUILD THE DIAGNOSIS'] },
+        { time: 'Afternoon', events: ['MEDICINE', 'SURGERY', 'FMT', 'CASE PRESENTATION', 'PAPER PRESENTATION'] }
       ]
     },
     day3: {
-      date: '25',
+      date: '11',
+      title: 'July 11 - Saturday',
       sessions: [
-        {
-          time: '9am to 12 pm',
-          events: ['Surgery', 'Pedia', 'SPM', 'Essay writing']
-        },
-        {
-          time: '1pm to 4 pm',
-          events: ['Surgery', 'Pedia', 'FMT', 'OBGYN-1']
-        }
+        { time: 'Morning', events: ['PAEDIATRICS', 'SPM', 'OBGYN-1', 'ANAESTHESIA', 'RESPIRATORY MEDICINE', 'SEMINAR PRESENTATION', 'ESSAY WRITING'] },
+        { time: 'Afternoon', events: ['PAEDIATRICS', 'FMT', 'OBGYN-2', 'ANAESTHESIA', 'PLASTIC SURGERY', 'POSTER PRESENTATION', 'HISTO-RANGOLI'] }
       ]
     },
     day4: {
-      date: '26',
+      date: '12',
+      title: 'July 12 - Sunday',
       sessions: [
-        {
-          time: '9am to 12 pm',
-          events: ['Ortho', 'ENT', 'SPM', 'Debate']
-        },
-        {
-          time: '1pm to 4 pm',
-          events: ['Ortho', 'FMT', 'OBGYN-1']
-        }
+        { time: 'Morning & Afternoon', events: ['MED HUNT'] }
       ]
     },
     day5: {
-      date: '27',
+      date: '13',
+      title: 'July 13 - Monday',
       sessions: [
-        {
-          time: '9am to 12 pm',
-          events: ['Anaesthesia', 'Surgery']
-        },
-        {
-          time: '1pm to 4 pm',
-          events: ['Anaesthesia', 'FMT', 'OBGYN-2', 'Music Band', 'Surgery']
-        }
+        { time: 'Morning', events: ['SURGERY', 'ORTHOPEDICS', 'ENT', 'SPM', 'OPTHALMOLOGY', 'GASTROENTEROLGY', 'NEUROLOGY'] },
+        { time: 'Afternoon', events: ['SURGERY', 'ORTHOPEDICS', 'FMT', 'OBGYN-1', 'DEBATE', 'ANTHYAKSHARI'] }
       ]
     },
     day6: {
-      date: '28',
+      date: '14',
+      title: 'July 14 - Tuesday',
       sessions: [
-        {
-          time: '9am to 12 pm',
-          events: ['Anaesthesia']
-        },
-        {
-          time: '1pm to 4 pm',
-          events: ['Anaesthesia', 'OBGYN-2', 'Movie Night']
-        }
+        { time: 'Morning', events: ['SURGERY', 'ANAESTHESIA', 'ENT', 'OBGYN-2', 'SPELL-BEE'] },
+        { time: 'Afternoon', events: ['ANAESTHESIA', 'FMT', 'CONCERT(EVENING)'] }
+      ]
+    },
+    day7: {
+      date: '15',
+      title: 'July 15 - Wednesday',
+      sessions: [
+        { time: 'Morning', events: ['RADIOLOGY', 'NEUROSURGERY'] },
+        { time: 'Afternoon', events: ['PATHOLOGY & MICROBIOLOGY', 'MOVIE NIGHT'] }
+      ]
+    },
+    day8: {
+      date: '16',
+      title: 'July 16 - Thursday',
+      sessions: [
+        { time: 'Morning & Afternoon', events: ['VALEDICTORY CEREMONY'] }
       ]
     }
   };
