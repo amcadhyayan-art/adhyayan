@@ -18,7 +18,8 @@ import RefundPolicyPage from './pages/RefundPolicyPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const isAdminRoute = window.location.pathname.startsWith('/admin');
+  const [showSplash, setShowSplash] = useState(!isAdminRoute);
 
   // Lock scroll while splash is active
   useEffect(() => {

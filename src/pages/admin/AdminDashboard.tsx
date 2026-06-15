@@ -21,6 +21,12 @@ import {
 import { API_BASE_URL } from '../../config';
 
 // Interfaces
+interface WorkshopSlot {
+  label: string;       // e.g. "9:00 AM – 1:00 PM | July 12"
+  slotsTotal: number;
+  slotsFilled: number;
+}
+
 interface Workshop {
   _id: string;
   title: string;
@@ -35,7 +41,7 @@ interface Workshop {
   category?: string;
   topics?: string[];
   contacts?: { name: string; phone: string }[];
-  slots?: string[];
+  slots?: WorkshopSlot[];
 }
 
 interface Competition {
@@ -51,14 +57,20 @@ interface Competition {
   guidelines?: string[];
   topics?: string[];
   judgingCriteria?: string[];
+  slots?: WorkshopSlot[];
 }
 
 interface Accommodation {
   _id: string;
   type: string;
-  description: string;
+  price: string;
   pricePerDay: number;
+  occupancy: string;
+  amenities: string[];
+  image: string;
   availableRooms: number;
+  venue?: string;
+  contacts?: { name: string; phone: string }[];
 }
 
 interface Registration {
@@ -91,8 +103,16 @@ interface Registration {
 }
 
 const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'workshops' | 'competitions' | 'accommodation' | 'registrations' | 'accommodation-bookings'>('overview');
-  const [token, setToken] = useState<string | null>(null);
+  type TabType = 'overview' | 'workshops' | 'competitions' | 'accommodation' | 'registrations' | 'accommodation-bookings';
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    return (sessionStorage.getItem('adminActiveTab') as TabType) || 'overview';
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('adminActiveTab', activeTab);
+  }, [activeTab]);
+  // Initialize token directly from localStorage to avoid flash-redirect on refresh
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('adminToken'));
   const navigate = useNavigate();
 
   // Data States
@@ -114,27 +134,15 @@ const AdminDashboard: React.FC = () => {
   const [customCategory, setCustomCategory] = useState('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
 
-  // Form Fields State
-  const [workshopForm, setWorkshopForm] = useState({
-    title: '', description: '', speaker: '', venue: '', date: '', time: '', price: 0, slotsTotal: 100, category: 'General',
-    topics: '', contacts: '', slots: '', image: ''
-  });
-  const [competitionForm, setCompetitionForm] = useState({
-    title: '', description: '', rules: '', minTeam: 1, maxTeam: 1, prizePool: '', price: 0, category: 'General',
-    contacts: '', guidelines: '', topics: '', judgingCriteria: '', image: ''
-  });
-  const [accommodationForm, setAccommodationForm] = useState({
-    type: '', description: '', pricePerDay: 0, availableRooms: 50
-  });
+  // Slot builder state (used for both workshop and competition)
+  const [slotRows, setSlotRows] = useState<{ label: string; slotsTotal: number }[]>([]);
 
+  // Redirect to login if no token found
   useEffect(() => {
-    const savedToken = localStorage.getItem('adminToken');
-    if (!savedToken) {
+    if (!token) {
       navigate('/admin');
-    } else {
-      setToken(savedToken);
     }
-  }, [navigate]);
+  }, [token, navigate]);
 
   useEffect(() => {
     if (token) {
@@ -142,6 +150,22 @@ const AdminDashboard: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  // Form Fields State
+  const [workshopForm, setWorkshopForm] = useState({
+    title: '', description: '', speaker: '', venue: '', date: '', time: '', price: 0, slotsTotal: 100, category: 'General',
+    topics: '', contacts: '', image: ''
+  });
+  const [competitionForm, setCompetitionForm] = useState({
+    title: '', description: '', rules: '', minTeam: 1, maxTeam: 1, prizePool: '', price: 0, category: 'Active Events',
+    contacts: '', guidelines: '', topics: '', judgingCriteria: '', image: ''
+  });
+  const [accommodationForm, setAccommodationForm] = useState({
+    type: '', price: '', pricePerDay: 0, occupancy: '', amenities: '', image: '', availableRooms: 50, venue: '', contacts: ''
+  });
+
+
+
 
   const fetchData = async () => {
     try {
@@ -189,13 +213,24 @@ const AdminDashboard: React.FC = () => {
       let method = 'POST';
       let bodyData: any = {};
 
+      // Merge slotRows with existing slotsFilled counts (preserve bookings when editing)
+      const buildSlots = (): WorkshopSlot[] => {
+        const existing = (editingItem?.slots ?? []) as WorkshopSlot[];
+        return slotRows
+          .filter(s => s.label.trim() !== '')
+          .map(s => {
+            const found = existing.find(e => e.label === s.label.trim());
+            return { label: s.label.trim(), slotsTotal: s.slotsTotal, slotsFilled: found?.slotsFilled ?? 0 };
+          });
+      };
+
       if (modalType === 'workshop') {
         url = `${API_BASE_URL}/api/admin/workshops`;
         bodyData = {
           ...workshopForm,
           category: isCustomCategory ? customCategory : (workshopForm.category || 'General'),
           topics: workshopForm.topics.split('\n').map(t => t.trim()).filter(t => t !== ''),
-          slots: workshopForm.slots.split('\n').map(s => s.trim()).filter(s => s !== ''),
+          slots: buildSlots(),
           contacts: workshopForm.contacts.split('\n').map(line => {
             const [name, phone] = line.split(':');
             return { name: name?.trim() || '', phone: phone?.trim() || '' };
@@ -205,7 +240,7 @@ const AdminDashboard: React.FC = () => {
         url = `${API_BASE_URL}/api/admin/competitions`;
         bodyData = {
           ...competitionForm,
-          category: isCustomCategory ? customCategory : (competitionForm.category || 'General'),
+          category: isCustomCategory ? customCategory : (competitionForm.category || 'Active Events'),
           rules: competitionForm.rules.split('\n').map(r => r.trim()).filter(r => r !== ''),
           guidelines: competitionForm.guidelines.split('\n').map(g => g.trim()).filter(g => g !== ''),
           topics: competitionForm.topics.split('\n').map(t => t.trim()).filter(t => t !== ''),
@@ -214,11 +249,19 @@ const AdminDashboard: React.FC = () => {
             const [name, phone] = line.split(':');
             return { name: name?.trim() || '', phone: phone?.trim() || '' };
           }).filter(c => c.name !== ''),
-          teamSize: { min: competitionForm.minTeam, max: competitionForm.maxTeam }
+          teamSize: { min: competitionForm.minTeam, max: competitionForm.maxTeam },
+          slots: buildSlots()
         };
       } else if (modalType === 'accommodation') {
         url = `${API_BASE_URL}/api/admin/accommodation`;
-        bodyData = accommodationForm;
+        bodyData = {
+          ...accommodationForm,
+          amenities: accommodationForm.amenities.split('\n').map((a: string) => a.trim()).filter((a: string) => a !== ''),
+          contacts: accommodationForm.contacts.split('\n').map((line: string) => {
+            const [name, phone] = line.split(':');
+            return { name: name?.trim() || '', phone: phone?.trim() || '' };
+          }).filter((c: any) => c.name !== '')
+        };
       }
 
       if (editingItem) {
@@ -245,7 +288,11 @@ const AdminDashboard: React.FC = () => {
   const handleDeleteItem = async (type: 'workshop' | 'competition' | 'accommodation', id: string) => {
     if (!window.confirm('Are you sure you want to delete this item?')) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/${type}s/${id}`, {
+      const url = type === 'accommodation' 
+        ? `${API_BASE_URL}/api/admin/accommodation/${id}`
+        : `${API_BASE_URL}/api/admin/${type}s/${id}`;
+        
+      const res = await fetch(url, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -274,10 +321,10 @@ const AdminDashboard: React.FC = () => {
         slotsTotal: item.slotsTotal || 100,
         category: item.category || 'General',
         topics: item.topics ? item.topics.join('\n') : '',
-        slots: item.slots ? item.slots.join('\n') : '',
         contacts: item.contacts ? item.contacts.map((c: any) => `${c.name}: ${c.phone}`).join('\n') : '',
         image: item.image || ''
       });
+      setSlotRows(item.slots ? (item.slots as WorkshopSlot[]).map(s => ({ label: s.label, slotsTotal: s.slotsTotal })) : []);
     } else if (type === 'competition') {
       setCompetitionForm({
         title: item.title,
@@ -287,19 +334,25 @@ const AdminDashboard: React.FC = () => {
         maxTeam: item.teamSize?.max || 1,
         prizePool: item.prizePool || '',
         price: item.price,
-        category: item.category || 'General',
+        category: item.category || 'Active Events',
         contacts: item.contacts ? item.contacts.map((c: any) => `${c.name}: ${c.phone}`).join('\n') : '',
         guidelines: item.guidelines ? item.guidelines.join('\n') : '',
         topics: item.topics ? item.topics.join('\n') : '',
         judgingCriteria: item.judgingCriteria ? item.judgingCriteria.join('\n') : '',
         image: item.image || ''
       });
+      setSlotRows(item.slots ? (item.slots as WorkshopSlot[]).map(s => ({ label: s.label, slotsTotal: s.slotsTotal })) : []);
     } else if (type === 'accommodation') {
       setAccommodationForm({
         type: item.type,
-        description: item.description || '',
-        pricePerDay: item.pricePerDay,
-        availableRooms: item.availableRooms || 50
+        price: item.price || '',
+        pricePerDay: item.pricePerDay || 0,
+        occupancy: item.occupancy || '',
+        amenities: item.amenities ? item.amenities.join('\n') : '',
+        image: item.image || '',
+        availableRooms: item.availableRooms || 50,
+        venue: item.venue || '',
+        contacts: item.contacts ? item.contacts.map((c: any) => `${c.name}: ${c.phone}`).join('\n') : ''
       });
     }
     setModalOpen(true);
@@ -311,11 +364,13 @@ const AdminDashboard: React.FC = () => {
     setIsCustomCategory(false);
     setCustomCategory('');
     if (type === 'workshop') {
-      setWorkshopForm({ title: '', description: '', speaker: '', venue: '', date: '', time: '', price: 0, slotsTotal: 100, category: 'General', topics: '', contacts: '', slots: '', image: '' });
+      setWorkshopForm({ title: '', description: '', speaker: '', venue: '', date: '', time: '', price: 0, slotsTotal: 100, category: 'General', topics: '', contacts: '', image: '' });
+      setSlotRows([]);
     } else if (type === 'competition') {
-      setCompetitionForm({ title: '', description: '', rules: '', minTeam: 1, maxTeam: 1, prizePool: '', price: 0, category: 'General', contacts: '', guidelines: '', topics: '', judgingCriteria: '', image: '' });
+      setCompetitionForm({ title: '', description: '', rules: '', minTeam: 1, maxTeam: 1, prizePool: '', price: 0, category: 'Active Events', contacts: '', guidelines: '', topics: '', judgingCriteria: '', image: '' });
+      setSlotRows([]);
     } else if (type === 'accommodation') {
-      setAccommodationForm({ type: '', description: '', pricePerDay: 0, availableRooms: 50 });
+      setAccommodationForm({ type: '', price: '', pricePerDay: 0, occupancy: '', amenities: '', image: '', availableRooms: 50, venue: '', contacts: '' });
     }
     setModalOpen(true);
   };
@@ -548,11 +603,37 @@ const AdminDashboard: React.FC = () => {
                     </div>
                     <p className="text-slate-400 text-xs line-clamp-3 mb-4">{w.description}</p>
                     
-                    <div className="space-y-2 text-xs text-slate-300">
+                    <div className="space-y-2 text-xs text-slate-300 mb-3">
                       <p><strong>Speaker:</strong> {w.speaker}</p>
                       <p><strong>Price:</strong> ₹{w.price}</p>
-                      <p><strong>Slots:</strong> {w.slotsFilled} / {w.slotsTotal}</p>
+                      <p><strong>Overall:</strong> {w.slotsFilled} / {w.slotsTotal} filled</p>
                     </div>
+
+                    {/* Per-slot booking bars */}
+                    {w.slots && w.slots.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Slot Bookings</p>
+                        {w.slots.map((slot, idx) => {
+                          const pct = slot.slotsTotal > 0 ? Math.min(100, Math.round((slot.slotsFilled / slot.slotsTotal) * 100)) : 0;
+                          return (
+                            <div key={idx}>
+                              <div className="flex justify-between items-center mb-0.5">
+                                <span className="text-[10px] text-slate-400 truncate max-w-[70%]">{slot.label}</span>
+                                <span className="text-[10px] font-bold text-sky-400">{slot.slotsFilled}/{slot.slotsTotal}</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all ${
+                                    pct >= 90 ? 'bg-red-500' : pct >= 60 ? 'bg-yellow-400' : 'bg-sky-500'
+                                  }`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex border-t border-slate-800 p-4 gap-2 bg-slate-950/40">
@@ -605,11 +686,37 @@ const AdminDashboard: React.FC = () => {
                     </div>
                     <p className="text-slate-400 text-xs line-clamp-3 mb-4">{c.description}</p>
                     
-                    <div className="space-y-2 text-xs text-slate-300">
+                    <div className="space-y-2 text-xs text-slate-300 mb-3">
                       <p><strong>Prize Pool:</strong> {c.prizePool || 'TBA'}</p>
                       <p><strong>Price:</strong> ₹{c.price}</p>
                       <p><strong>Team Size:</strong> {c.teamSize?.min} - {c.teamSize?.max} members</p>
                     </div>
+
+                    {/* Per-slot booking bars */}
+                    {c.slots && c.slots.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Slot Bookings</p>
+                        {c.slots.map((slot, idx) => {
+                          const pct = slot.slotsTotal > 0 ? Math.min(100, Math.round((slot.slotsFilled / slot.slotsTotal) * 100)) : 0;
+                          return (
+                            <div key={idx}>
+                              <div className="flex justify-between items-center mb-0.5">
+                                <span className="text-[10px] text-slate-400 truncate max-w-[70%]">{slot.label}</span>
+                                <span className="text-[10px] font-bold text-sky-400">{slot.slotsFilled}/{slot.slotsTotal}</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all ${
+                                    pct >= 90 ? 'bg-red-500' : pct >= 60 ? 'bg-yellow-400' : 'bg-sky-500'
+                                  }`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex border-t border-slate-800 p-4 gap-2 bg-slate-950/40">
@@ -655,10 +762,10 @@ const AdminDashboard: React.FC = () => {
                 <div key={a._id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col justify-between">
                   <div className="p-6">
                     <h3 className="text-lg font-bold text-white mb-2">{a.type}</h3>
-                    <p className="text-slate-400 text-xs line-clamp-3 mb-4">{a.description}</p>
+                    <p className="text-slate-400 text-xs line-clamp-3 mb-4">{a.occupancy}</p>
                     
                     <div className="space-y-2 text-xs text-slate-300">
-                      <p><strong>Price / Day:</strong> ₹{a.pricePerDay}</p>
+                      <p><strong>Price:</strong> {a.price}</p>
                       <p><strong>Available Rooms:</strong> {a.availableRooms}</p>
                     </div>
                   </div>
@@ -1057,14 +1164,53 @@ const AdminDashboard: React.FC = () => {
                         className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
                       />
                     </div>
+                    {/* ─── Slot Builder ─── */}
                     <div>
-                      <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Available Slots (One per line)</label>
-                      <textarea 
-                        rows={3} placeholder="9:00 AM - 1:00 PM&#10;2:00 PM - 6:00 PM..."
-                        value={workshopForm.slots}
-                        onChange={e => setWorkshopForm({ ...workshopForm, slots: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
-                      />
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-slate-400 text-xs font-semibold uppercase">Time Slots &amp; Capacity</label>
+                        <button
+                          type="button"
+                          onClick={() => setSlotRows(prev => [...prev, { label: '', slotsTotal: 50 }])}
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-semibold hover:bg-sky-500/20 transition-all"
+                        >
+                          <Plus className="h-3 w-3" /> Add Slot
+                        </button>
+                      </div>
+                      {slotRows.length === 0 && (
+                        <p className="text-xs text-slate-600 italic py-2">No slots added yet. Click "Add Slot" to define time slots with capacity.</p>
+                      )}
+                      <div className="space-y-2">
+                        {slotRows.map((slot, idx) => (
+                          <div key={idx} className="flex items-center gap-2 p-2 bg-slate-950 border border-slate-800 rounded-xl">
+                            <div className="flex-1">
+                              <input
+                                type="text"
+                                placeholder="e.g. 9:00 AM – 1:00 PM"
+                                value={slot.label}
+                                onChange={e => setSlotRows(prev => prev.map((s, i) => i === idx ? { ...s, label: e.target.value } : s))}
+                                className="w-full bg-transparent text-sm text-white placeholder-slate-600 focus:outline-none"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="text-[10px] text-slate-500 font-semibold">MAX</span>
+                              <input
+                                type="number"
+                                min={1}
+                                value={slot.slotsTotal}
+                                onChange={e => setSlotRows(prev => prev.map((s, i) => i === idx ? { ...s, slotsTotal: parseInt(e.target.value) || 1 } : s))}
+                                className="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white text-center focus:outline-none focus:border-sky-500/60"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setSlotRows(prev => prev.filter((_, i) => i !== idx))}
+                              className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-all shrink-0"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Coordinators (Format Name: Phone | One per line)</label>
@@ -1216,7 +1362,7 @@ const AdminDashboard: React.FC = () => {
                               }}
                               className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50 text-white"
                             >
-                              {Array.from(new Set(competitions.map(c => c.category || 'General'))).map(cat => (
+                              {Array.from(new Set(['Active Events', 'Passive Events', 'Competitions', ...competitions.map(c => c.category || 'Active Events')])).map(cat => (
                                 <option key={cat} value={cat}>{cat}</option>
                               ))}
                               <option value="__custom__">+ Add Custom Category</option>
@@ -1234,7 +1380,7 @@ const AdminDashboard: React.FC = () => {
                                 type="button"
                                 onClick={() => {
                                   setIsCustomCategory(false);
-                                  setCompetitionForm({ ...competitionForm, category: 'General' });
+                                  setCompetitionForm({ ...competitionForm, category: 'Active Events' });
                                 }}
                                 className="px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs"
                               >
@@ -1274,6 +1420,54 @@ const AdminDashboard: React.FC = () => {
                         />
                       </div>
                     </div>
+                    {/* ─── Slot Builder ─── */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-slate-400 text-xs font-semibold uppercase">Sessions &amp; Capacity</label>
+                        <button
+                          type="button"
+                          onClick={() => setSlotRows(prev => [...prev, { label: '', slotsTotal: 50 }])}
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-semibold hover:bg-sky-500/20 transition-all"
+                        >
+                          <Plus className="h-3 w-3" /> Add Session
+                        </button>
+                      </div>
+                      {slotRows.length === 0 && (
+                        <p className="text-xs text-slate-600 italic py-2">No sessions added yet. Click "Add Session" to define sessions with capacity.</p>
+                      )}
+                      <div className="space-y-2">
+                        {slotRows.map((slot, idx) => (
+                          <div key={idx} className="flex items-center gap-2 p-2 bg-slate-950 border border-slate-800 rounded-xl">
+                            <div className="flex-1">
+                              <input
+                                type="text"
+                                placeholder="e.g. Morning Session"
+                                value={slot.label}
+                                onChange={e => setSlotRows(prev => prev.map((s, i) => i === idx ? { ...s, label: e.target.value } : s))}
+                                className="w-full bg-transparent text-sm text-white placeholder-slate-600 focus:outline-none"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="text-[10px] text-slate-500 font-semibold">MAX</span>
+                              <input
+                                type="number"
+                                min={1}
+                                value={slot.slotsTotal}
+                                onChange={e => setSlotRows(prev => prev.map((s, i) => i === idx ? { ...s, slotsTotal: parseInt(e.target.value) || 1 } : s))}
+                                className="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white text-center focus:outline-none focus:border-sky-500/60"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setSlotRows(prev => prev.filter((_, i) => i !== idx))}
+                              className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-all shrink-0"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1281,29 +1475,31 @@ const AdminDashboard: React.FC = () => {
               {/* Accommodation Form Controls */}
               {modalType === 'accommodation' && (
                 <>
-                  <div>
-                    <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Room Type</label>
-                    <input 
-                      type="text" required placeholder="e.g. AC Double Shared"
-                      value={accommodationForm.type}
-                      onChange={e => setAccommodationForm({ ...accommodationForm, type: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Description</label>
-                    <textarea 
-                      rows={3}
-                      value={accommodationForm.description}
-                      onChange={e => setAccommodationForm({ ...accommodationForm, description: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Price Per Day (INR)</label>
+                      <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Room Type</label>
                       <input 
-                        type="number" required
+                        type="text" required placeholder="e.g. Girls Hostel (Triple Sharing)"
+                        value={accommodationForm.type}
+                        onChange={e => setAccommodationForm({ ...accommodationForm, type: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Price</label>
+                      <input 
+                        type="text" required placeholder="e.g. ₹500/head per day"
+                        value={accommodationForm.price}
+                        onChange={e => setAccommodationForm({ ...accommodationForm, price: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Price Per Day (Numeric)</label>
+                      <input 
+                        type="number" required placeholder="e.g. 500"
                         value={accommodationForm.pricePerDay}
                         onChange={e => setAccommodationForm({ ...accommodationForm, pricePerDay: parseInt(e.target.value) || 0 })}
                         className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
@@ -1317,6 +1513,83 @@ const AdminDashboard: React.FC = () => {
                         onChange={e => setAccommodationForm({ ...accommodationForm, availableRooms: parseInt(e.target.value) || 0 })}
                         className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
                       />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Occupancy Details</label>
+                      <input 
+                        type="text" placeholder="e.g. Triple Sharing Rooms"
+                        value={accommodationForm.occupancy}
+                        onChange={e => setAccommodationForm({ ...accommodationForm, occupancy: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Venue / Address</label>
+                      <input 
+                        type="text" placeholder="e.g. Andhra Medical College campus..."
+                        value={accommodationForm.venue}
+                        onChange={e => setAccommodationForm({ ...accommodationForm, venue: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Amenities (One per line)</label>
+                      <textarea 
+                        rows={3} placeholder="Ceiling Fan&#10;Attached Bathroom..."
+                        value={accommodationForm.amenities}
+                        onChange={e => setAccommodationForm({ ...accommodationForm, amenities: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Coordinators (Format Name: Phone | One per line)</label>
+                      <textarea 
+                        rows={3} placeholder="Sravya: 9392062600&#10;Prashanthi: 7032583272..."
+                        value={accommodationForm.contacts}
+                        onChange={e => setAccommodationForm({ ...accommodationForm, contacts: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-slate-400 text-xs font-semibold uppercase mb-1">Accommodation Image</label>
+                    <div className="flex flex-col gap-2">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 2 * 1024 * 1024) {
+                              alert('Image size exceeds 2MB limit. Please choose a smaller image.');
+                              e.target.value = '';
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setAccommodationForm({ ...accommodationForm, image: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="w-full bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl text-sm focus:outline-none text-slate-400 file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-500 file:text-black hover:file:bg-sky-400 cursor-pointer"
+                      />
+                      {accommodationForm.image && (
+                        <div className="relative w-full h-32 rounded-xl overflow-hidden border border-slate-850 bg-slate-950/40">
+                          <img src={accommodationForm.image} alt="Preview" className="w-full h-full object-cover" />
+                          <button 
+                            type="button"
+                            onClick={() => setAccommodationForm({ ...accommodationForm, image: '' })}
+                            className="absolute top-2 right-2 bg-red-500 hover:bg-red-400 text-white rounded-full p-1"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </>
