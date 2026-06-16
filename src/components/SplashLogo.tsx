@@ -30,34 +30,9 @@ const SplashLogo: React.FC<SplashLogoProps> = ({ onComplete }) => {
           transition={{ duration: 0.8, ease: 'easeInOut' }}
           className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center overflow-hidden"
         >
-          <div className="relative w-full h-full flex items-center justify-center">
-            {/* Full Screen White ECG Pulse Line */}
-            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-48 pointer-events-none">
-              <svg
-                className="w-full h-full text-white/50"
-                viewBox="0 0 1000 200"
-                preserveAspectRatio="none"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <motion.path
-                  d="M 0 100 L 350 100 L 370 70 L 390 100 L 410 100 L 420 130 L 440 10 L 460 190 L 470 100 L 490 100 L 520 40 L 550 100 L 580 100 L 590 115 L 610 20 L 630 170 L 640 100 L 670 100 L 700 60 L 730 100 L 1000 100"
-                  stroke="currentColor" // Use white line instead of green
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  initial={{ pathLength: 0, opacity: 0.8 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{
-                    duration: 3.5,
-                    ease: "easeInOut"
-                  }}
-                />
-              </svg>
-            </div>
-
-            {/* Logo in the center */}
-            <div className="relative z-10 flex flex-col items-center gap-4">
+          <div className="relative w-full h-full flex flex-col items-center justify-center">
+            {/* Logo on top */}
+            <div className="relative z-10 flex flex-col items-center gap-4 mt-[-10vh] mb-8">
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 1.5, ease: "easeInOut" }}
@@ -69,6 +44,31 @@ const SplashLogo: React.FC<SplashLogoProps> = ({ onComplete }) => {
                   className="h-32 w-32 md:h-48 md:w-48 object-contain"
                 />
               </motion.div>
+            </div>
+
+            {/* White ECG Pulse Line below logo */}
+            <div className="relative w-full h-48 pointer-events-none">
+              <svg
+                className="w-full h-full text-white/50"
+                viewBox="0 0 1000 200"
+                preserveAspectRatio="none"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <motion.path
+                  d="M 0 100 L 350 100 L 370 70 L 390 100 L 410 100 L 420 130 L 440 10 L 460 190 L 470 100 L 490 100 L 520 40 L 550 100 L 580 100 L 590 115 L 610 20 L 630 170 L 640 100 L 670 100 L 700 60 L 730 100 L 1000 100"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  initial={{ pathLength: 0, opacity: 0.8 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{
+                    duration: 3.5,
+                    ease: "easeInOut"
+                  }}
+                />
+              </svg>
             </div>
           </div>
         </motion.div>
