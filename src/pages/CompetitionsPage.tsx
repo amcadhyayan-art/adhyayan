@@ -11,7 +11,7 @@ import { API_BASE_URL } from '../config';
 interface Competition {
   id: string;
   title: string;
-  category: 'Scientific' | 'Creative';
+  category?: string;
   icon: JSX.Element;
   description: string;
   image: string;
@@ -39,7 +39,7 @@ const defaultCompetitions: any[] = [
     id: 'build-diagnosis',
     _id: 'build-diagnosis',
     title: 'Build the Diagnosis',
-    category: 'Scientific',
+    category: 'Competitions',
     description: 'A case-based diagnostic puzzle combining patient history, clinical signs, lab results, and logical reasoning.',
     image: '/competitions/Diagnosis.png',
     details: {
@@ -60,7 +60,7 @@ const defaultCompetitions: any[] = [
     id: 'debate',
     _id: 'debate',
     title: 'Medical Debate',
-    category: 'Creative',
+    category: 'Competitions',
     description: 'Engage in thought-provoking formal discussions and rebuttals on critical bioethical and medical topics.',
     image: '/competitions/Medical_debate.png',
     details: {
@@ -85,7 +85,7 @@ const defaultCompetitions: any[] = [
     id: 'essay',
     _id: 'essay',
     title: 'Essay Writing',
-    category: 'Scientific',
+    category: 'Competitions',
     description: 'Express your insights on contemporary medical challenges through academically rigorous and compelling essays.',
     image: '/competitions/essaywriting.png',
     details: {
@@ -105,7 +105,7 @@ const defaultCompetitions: any[] = [
     id: 'reels',
     _id: 'reels',
     title: 'Medical Reels',
-    category: 'Creative',
+    category: 'Competitions',
     description: 'Create engaging, informative, and visually stunning short-form social video content explaining medical phenomena.',
     image: '/competitions/Medical_Reels.png',
     details: {
@@ -128,7 +128,7 @@ const defaultCompetitions: any[] = [
     id: 'seminar',
     _id: 'seminar',
     title: 'Integrated Seminar',
-    category: 'Scientific',
+    category: 'Competitions',
     description: 'Present clinical cases and explain complex medical topics from pathophysiological mechanism to clinical management.',
     image: '/competitions/Seminar.png',
     details: {
@@ -179,7 +179,7 @@ const defaultCompetitions: any[] = [
     id: 'photography',
     _id: 'photography',
     title: 'Photography Competition',
-    category: 'Creative',
+    category: 'Competitions',
     description: 'Capture the essence of college life, medical heritage, and campus beauty through your photography lens.',
     image: '/competitions/Photography.png',
     details: {
@@ -238,7 +238,7 @@ const CompetitionsPage: React.FC = () => {
             if (normId.includes('reel') || normId.includes('video')) return <Video className="h-6 w-6" />;
             if (normId.includes('seminar') || normId.includes('presentation')) return <Presentation className="h-6 w-6" />;
             if (normId.includes('photo') || normId.includes('camera')) return <Camera className="h-6 w-6" />;
-            return category === 'Creative' ? <Camera className="h-6 w-6" /> : <Brain className="h-6 w-6" />;
+            return <Brain className="h-6 w-6" />;
           };
 
           // Map MongoDB _id to id if missing for backwards compatibility in modal triggers

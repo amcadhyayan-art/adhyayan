@@ -450,9 +450,9 @@ const WorkshopDetailsPage: React.FC = () => {
       })
       .then((data) => {
         if (data) {
-          const mappedSlots = (data.slots || []).map((slotStr: any, idx: number) => {
-            if (typeof slotStr === 'string') {
-              const parts = slotStr.split('|');
+          const mappedSlots = (data.slots || []).map((slotItem: any, idx: number) => {
+            if (typeof slotItem === 'string') {
+              const parts = slotItem.split('|');
               if (parts.length >= 2) {
                 return {
                   id: `slot-${idx}`,
@@ -463,12 +463,31 @@ const WorkshopDetailsPage: React.FC = () => {
               }
               return {
                 id: `slot-${idx}`,
-                time: slotStr,
+                time: slotItem,
                 date: data.date || 'Multiple Dates',
                 paymentLink: 'https://rzp.io/rzp/LTz3fhU'
               };
+            } else if (typeof slotItem === 'object' && slotItem !== null) {
+              const label = slotItem.label || '';
+              const parts = label.split('|');
+              if (parts.length >= 2) {
+                return {
+                  id: slotItem._id || `slot-${idx}`,
+                  time: parts[0]?.trim() || '',
+                  date: parts[1]?.trim() || data.date || 'Multiple Dates',
+                  paymentLink: parts[2]?.trim() || 'https://rzp.io/rzp/LTz3fhU',
+                  ...slotItem
+                };
+              }
+              return {
+                id: slotItem._id || `slot-${idx}`,
+                time: label,
+                date: data.date || 'Multiple Dates',
+                paymentLink: 'https://rzp.io/rzp/LTz3fhU',
+                ...slotItem
+              };
             }
-            return slotStr;
+            return slotItem;
           });
 
           const localFallback = workshops.find(w => w.id === id);
