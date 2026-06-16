@@ -1362,7 +1362,7 @@ const AdminDashboard: React.FC = () => {
                               }}
                               className="w-full bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50 text-white"
                             >
-                              {Array.from(new Set(['Active Events', 'Passive Events', 'Competitions', ...competitions.map(c => c.category || 'Active Events')])).map(cat => (
+                              {Array.from(new Set(['Active Events', 'Passive Events', 'Competitions', 'Culturals', ...competitions.map(c => c.category || 'Active Events')])).map(cat => (
                                 <option key={cat} value={cat}>{cat}</option>
                               ))}
                               <option value="__custom__">+ Add Custom Category</option>

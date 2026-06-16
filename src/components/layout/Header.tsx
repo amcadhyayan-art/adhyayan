@@ -12,7 +12,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ isScrolled }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [eventCategories, setEventCategories] = useState<string[]>(['Active Events', 'Passive Events', 'Competitions']);
+  const [eventCategories, setEventCategories] = useState<string[]>(['Active Events', 'Passive Events', 'Competitions', 'Culturals']);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -23,8 +23,8 @@ const Header: React.FC<HeaderProps> = ({ isScrolled }) => {
       .then(data => {
         if (Array.isArray(data)) {
           const dynamicCats = Array.from(new Set(data.map((c: any) => c.category || 'General')));
-          const combined = new Set(['Active Events', 'Passive Events', 'Competitions', ...dynamicCats]);
-          setEventCategories(Array.from(combined).filter(c => c !== 'General'));
+          const combined = new Set(['Active Events', 'Passive Events', 'Competitions', 'Culturals', ...dynamicCats]);
+          setEventCategories(Array.from(combined).filter(c => c !== 'General' && c !== 'Scientific' && c !== 'Creative'));
         }
       })
       .catch(err => console.error("Failed to fetch categories:", err));

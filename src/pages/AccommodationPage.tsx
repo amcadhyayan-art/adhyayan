@@ -160,7 +160,10 @@ const AccommodationPage: React.FC = () => {
                       {contacts.map((c: any, i: number) => (
                         <div key={i} className="flex justify-between items-center w-64 text-slate-600">
                           <span className="font-semibold">{c.name}</span>
-                          <a href={`tel:${c.phone}`} className="text-sky-600 hover:underline">{c.phone}</a>
+                          <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-700 hover:underline">
+                            <Phone className="h-3.5 w-3.5" />
+                            {c.phone}
+                          </a>
                         </div>
                       ))}
                     </div>
@@ -401,7 +404,10 @@ const AccommodationPage: React.FC = () => {
                     {(selectedOption.contacts?.length > 0 ? selectedOption.contacts : contacts).map((c: any, i: number) => (
                       <div key={i} className="flex justify-between items-center text-sm font-jakarta">
                         <span className="font-semibold text-slate-700">{c.name}</span>
-                        <a href={`tel:${c.phone}`} className="text-sky-600 font-medium hover:underline">{c.phone}</a>
+                        <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1 text-sky-600 font-medium hover:text-sky-700 hover:underline">
+                          <Phone className="h-3 w-3" />
+                          {c.phone}
+                        </a>
                       </div>
                     ))}
                   </div>

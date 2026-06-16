@@ -143,6 +143,14 @@ const HeroSection: React.FC = () => {
             <Link to="/schedule" className="btn-secondary px-8 py-3.5">
               View Schedule
             </Link>
+            <a 
+              href="https://drive.google.com/file/d/1HqNgHpxbeXy_EGfcB2nTaSNExgR0e3Ni/view?usp=sharing" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn-secondary px-8 py-3.5"
+            >
+              Download Brochure
+            </a>
           </motion.div>
         </div>
       </div>
