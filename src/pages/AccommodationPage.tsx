@@ -47,16 +47,14 @@ const AccommodationPage: React.FC = () => {
   const primaryOption = accommodationOptions[0] || {};
   const venue = primaryOption.venue || 'Andhra Medical College campus, Maharanipeta, Visakhapatnam, Andhra Pradesh - 530002.';
   const contacts = primaryOption.contacts && primaryOption.contacts.length > 0 ? primaryOption.contacts : [
-    { name: 'Sravya (Girls Hostel)', phone: '+919392062600' },
-    { name: 'Prashanthi', phone: '+917032583272' },
-    { name: 'Vamsi', phone: '+919381581180' }
+    { name: 'Netaaji', phone: '+919392062600' }
   ];
 
   const bookingSteps = [
     {
       step: '01',
       title: 'Inquire Availability',
-      description: 'Call or message the accommodation coordinators (Sravya, Prashanthi, or Vamsi) to check room availability.'
+      description: 'Call or message the accommodation coordinator (Netaaji) to check room availability.'
     },
     {
       step: '02',
@@ -310,14 +308,14 @@ const AccommodationPage: React.FC = () => {
             Confirm Your Stay at Visakhapatnam
           </h2>
           <p className="text-slate-500 font-jakarta text-sm max-w-lg mx-auto">
-            Get in touch with Sravya directly to check current availability levels and secure your slot confirmation.
+            Get in touch with Netaaji directly to check current availability levels and secure your slot confirmation.
           </p>
           <div className="pt-2">
             <a 
               href="tel:+919392062600" 
               className="btn-primary px-8 py-3.5 text-white"
             >
-              Call Sravya Now
+              Call Netaaji Now
             </a>
           </div>
         </div>

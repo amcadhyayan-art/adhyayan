@@ -269,7 +269,9 @@ const CompetitionsPage: React.FC = () => {
       });
   }, []);
 
-  const categories = ['All', ...Array.from(new Set(competitions.map(c => c.category || 'General')))];
+  const dynamicCategories = Array.from(new Set(competitions.map(c => c.category || 'General')));
+  const combinedCategories = new Set(['All', 'Active Events', 'Passive Events', 'Competitions', 'Culturals', ...dynamicCategories]);
+  const categories = Array.from(combinedCategories).filter(c => c !== 'General' && c !== 'Scientific' && c !== 'Creative');
 
   const filteredCompetitions = competitions.filter(comp => {
     const matchesSearch = comp.title.toLowerCase().includes(searchQuery.toLowerCase()) || 

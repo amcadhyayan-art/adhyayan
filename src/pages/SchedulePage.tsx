@@ -29,7 +29,7 @@ const SchedulePage: React.FC = () => {
       date: '10',
       title: 'July 10 - Friday',
       sessions: [
-        { time: 'Morning', events: ['MEDICINE', 'SURGERY', 'OPTHA', 'BUILD THE DIAGNOSIS'] },
+        { time: 'Morning', events: ['MEDICINE', 'SURGERY', 'OPHTHA', 'BUILD THE DIAGNOSIS'] },
         { time: 'Afternoon', events: ['MEDICINE', 'SURGERY', 'FMT', 'CASE PRESENTATION', 'PAPER PRESENTATION'] }
       ]
     },
@@ -37,8 +37,8 @@ const SchedulePage: React.FC = () => {
       date: '11',
       title: 'July 11 - Saturday',
       sessions: [
-        { time: 'Morning', events: ['PAEDIATRICS', 'SPM', 'OBGYN-1', 'ANAESTHESIA', 'RESPIRATORY MEDICINE', 'SEMINAR PRESENTATION', 'ESSAY WRITING'] },
-        { time: 'Afternoon', events: ['PAEDIATRICS', 'FMT', 'OBGYN-2', 'ANAESTHESIA', 'PLASTIC SURGERY', 'POSTER PRESENTATION', 'HISTO-RANGOLI'] }
+        { time: 'Morning', events: ['PEDIATRICS', 'OBGYN-1', 'ANAESTHESIA', 'RESPIRATORY MEDICINE', 'MOCK-PARLIAMENT'] },
+        { time: 'Afternoon', events: ['PEDIATRICS', 'FMT', 'OBGYN-2', 'ANAESTHESIA', 'PLASTIC SURGERY', 'SEMINAR PRESENTATION', 'POSTER PRESENTATION', 'HISTO-RANGOLI'] }
       ]
     },
     day4: {
@@ -52,24 +52,24 @@ const SchedulePage: React.FC = () => {
       date: '13',
       title: 'July 13 - Monday',
       sessions: [
-        { time: 'Morning', events: ['SURGERY', 'ORTHOPEDICS', 'ENT', 'SPM', 'OPTHALMOLOGY', 'GASTROENTEROLGY', 'NEUROLOGY'] },
-        { time: 'Afternoon', events: ['SURGERY', 'ORTHOPEDICS', 'FMT', 'OBGYN-1', 'DEBATE', 'ANTHYAKSHARI'] }
+        { time: 'Morning', events: ['SURGERY', 'ORTHOPEDICS', 'ENT', 'SPM', 'OPHTHA', 'GASTROENTEROLOGY', 'NEUROLOGY', 'SPELL BEE'] },
+        { time: 'Afternoon', events: ['SURGERY', 'ORTHOPEDICS', 'FMT', 'OBGYN-1', 'INKSPIRE', 'RANGASTHALAM (EVNG)'] }
       ]
     },
     day6: {
       date: '14',
       title: 'July 14 - Tuesday',
       sessions: [
-        { time: 'Morning', events: ['SURGERY', 'ANAESTHESIA', 'ENT', 'OBGYN-2', 'SPELL-BEE'] },
-        { time: 'Afternoon', events: ['ANAESTHESIA', 'FMT', 'CONCERT(EVENING)'] }
+        { time: 'Morning', events: ['SURGERY', 'ANAESTHESIA', 'ENT', 'OBGYN-2', 'SPM', 'POETRY'] },
+        { time: 'Afternoon', events: ['ANAESTHESIA', 'FMT', 'MEDIQ', 'CONCERT(EVNG)'] }
       ]
     },
     day7: {
       date: '15',
       title: 'July 15 - Wednesday',
       sessions: [
-        { time: 'Morning', events: ['RADIOLOGY', 'NEUROSURGERY'] },
-        { time: 'Afternoon', events: ['PATHOLOGY & MICROBIOLOGY', 'MOVIE NIGHT'] }
+        { time: 'Morning', events: ['RADIOLOGY', 'NEUROSURGERY', 'PATHOLOGY & MICROBIOLOGY'] },
+        { time: 'Afternoon', events: ['MOVIE NIGHT'] }
       ]
     },
     day8: {
