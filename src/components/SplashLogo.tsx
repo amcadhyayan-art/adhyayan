@@ -41,7 +41,7 @@ const SplashLogo: React.FC<SplashLogoProps> = ({ onComplete }) => {
                 <img
                   src="/logo.jpeg"
                   alt="ADHYAYAN Logo"
-                  className="h-32 w-32 md:h-48 md:w-48 object-contain"
+                  className="h-48 w-48 md:h-72 md:w-72 object-contain"
                 />
               </motion.div>
             </div>
