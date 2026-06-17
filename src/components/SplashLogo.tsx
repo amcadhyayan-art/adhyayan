@@ -34,8 +34,6 @@ const SplashLogo: React.FC<SplashLogoProps> = ({ onComplete }) => {
             {/* Logo on top */}
             <div className="relative z-10 flex flex-col items-center gap-4 mt-[-10vh] mb-8">
               <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 1.5, ease: "easeInOut" }}
                 className="p-4 rounded-3xl"
               >
                 <img
@@ -49,7 +47,7 @@ const SplashLogo: React.FC<SplashLogoProps> = ({ onComplete }) => {
             {/* White ECG Pulse Line below logo */}
             <div className="relative w-full h-48 pointer-events-none">
               <svg
-                className="w-full h-full text-white/50"
+                className="w-full h-full text-red-600"
                 viewBox="0 0 1000 200"
                 preserveAspectRatio="none"
                 fill="none"

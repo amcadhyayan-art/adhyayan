@@ -26,7 +26,7 @@ const Footer: React.FC = () => {
               <span className="text-slate-800 group-hover:text-sky-600 transition-colors">ADHYAYAN 2026</span>
             </Link>
             <p className="text-slate-500 text-sm leading-relaxed">
-              A Festival of Fire, A Symphony of Scholars. The flagship medical symposium and innovation summit hosted by Andhra Medical College, Visakhapatnam.
+              Illuminating the Art of Medicine. Illuminate Minds, Ignite Innovations. The flagship medical symposium and innovation summit hosted by Andhra Medical College, Visakhapatnam.
             </p>
             <div className="flex space-x-4">
               <a 

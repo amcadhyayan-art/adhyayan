@@ -94,11 +94,14 @@ interface Registration {
   foodRequired: string;          // 'yes' | 'no'
   accommodationRequired: string; // 'yes' | 'no'
   payment: {
-    orderId: string;
-    paymentId: string;
+    orderId?: string;
+    paymentId?: string;
+    transactionId?: string;
+    paymentApp?: string;
     amount: number;
     status: string;
   };
+  verified: boolean;
   registeredAt: string;
 }
 
@@ -126,6 +129,7 @@ const AdminDashboard: React.FC = () => {
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [itemTypeFilter, setItemTypeFilter] = useState<'all' | 'workshops' | 'competitions' | 'accommodation'>('all');
   const [selectedRegDetails, setSelectedRegDetails] = useState<Registration | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Modal Control States
   const [modalOpen, setModalOpen] = useState(false);
@@ -856,7 +860,8 @@ const AdminDashboard: React.FC = () => {
                     <th className="p-4">College</th>
                     <th className="p-4">Items Booked</th>
                     <th className="p-4">Amount</th>
-                    <th className="p-4">Status</th>
+                    <th className="p-4">Payment App</th>
+                    <th className="p-4">Status / Verification</th>
                     <th className="p-4">Date</th>
                   </tr>
                 </thead>
@@ -883,11 +888,22 @@ const AdminDashboard: React.FC = () => {
                       </td>
                       <td className="p-4 font-semibold text-sky-400">₹{r.payment.amount}</td>
                       <td className="p-4">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          r.payment.status === 'success' ? 'bg-green-500/10 text-green-400' : r.payment.status === 'pending' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-red-500/10 text-red-400'
-                        }`}>
-                          {r.payment.status}
-                        </span>
+                        <div className="font-semibold text-slate-200">{r.payment.paymentApp || 'N/A'}</div>
+                        <div className="font-mono text-[10px] text-slate-500">{r.payment.transactionId || 'N/A'}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-col gap-1.5 items-start">
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            r.payment.status === 'success' ? 'bg-green-500/10 text-green-400' : r.payment.status === 'pending' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-red-500/10 text-red-400'
+                          }`}>
+                            {r.payment.status}
+                          </span>
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            r.verified ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-400'
+                          }`}>
+                            {r.verified ? 'VERIFIED' : 'UNVERIFIED'}
+                          </span>
+                        </div>
                       </td>
                       <td className="p-4 text-slate-500 text-xs">
                         {new Date(r.registeredAt).toLocaleDateString()}
@@ -1772,22 +1788,59 @@ const AdminDashboard: React.FC = () => {
                     <span className="text-base font-bold text-sky-400">₹{selectedRegDetails.payment.amount}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Order ID</span>
-                    <span className="font-mono text-xs text-slate-300">{selectedRegDetails.payment.orderId || 'N/A'}</span>
+                    <span className="text-slate-400">Payment App</span>
+                    <span className="font-semibold text-slate-300">{selectedRegDetails.payment.paymentApp || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Payment ID</span>
-                    <span className="font-mono text-xs text-slate-300">{selectedRegDetails.payment.paymentId || 'N/A'}</span>
+                    <span className="text-slate-400">Transaction ID</span>
+                    <span className="font-mono text-xs text-sky-300 bg-sky-500/10 px-2 py-0.5 rounded">{selectedRegDetails.payment.transactionId || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Payment Status</span>
+                    <span className="text-slate-400">Verification Status</span>
                     <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                      selectedRegDetails.payment.status === 'success' ? 'bg-green-500/10 text-green-400' : selectedRegDetails.payment.status === 'pending' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-red-500/10 text-red-400'
+                      selectedRegDetails.verified ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'
                     }`}>
-                      {selectedRegDetails.payment.status}
+                      {selectedRegDetails.verified ? 'VERIFIED' : 'PENDING'}
                     </span>
                   </div>
                 </div>
+
+                {!selectedRegDetails.verified && (
+                  <button 
+                    disabled={isVerifying}
+                    onClick={async () => {
+                      if (!confirm('Are you sure you want to verify this payment? A confirmation email will be sent.')) return;
+                      setIsVerifying(true);
+                      try {
+                        const adminToken = localStorage.getItem('adminToken');
+                        const res = await fetch(`${API_BASE_URL}/api/admin/registrations/${selectedRegDetails._id}/verify`, {
+                          method: 'PUT',
+                          headers: { Authorization: `Bearer ${adminToken}` }
+                        });
+                        if (!res.ok) throw new Error('Verification failed');
+                        alert('Registration verified and email sent!');
+                        // Update local state
+                        const updatedList = registrations.map(r => r._id === selectedRegDetails._id ? { ...r, verified: true, payment: { ...r.payment, status: 'success' } } : r);
+                        setRegistrations(updatedList);
+                        setSelectedRegDetails(updatedList.find(r => r._id === selectedRegDetails._id) || null);
+                      } catch (err: any) {
+                        alert(err.message);
+                      } finally {
+                        setIsVerifying(false);
+                      }
+                    }}
+                    className="w-full py-3.5 mt-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {isVerifying ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
+                        Verifying...
+                      </>
+                    ) : (
+                      'Verify Payment Manually'
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>

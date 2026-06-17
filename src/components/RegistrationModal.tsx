@@ -26,27 +26,48 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [foodRequired, setFoodRequired] = useState(false);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(-1);
 
+  const [step, setStep] = useState<1 | 2>(1);
+  const [transactionId, setTransactionId] = useState('');
+  const [paymentApp, setPaymentApp] = useState('PhonePe');
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleNextStep = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    
+    // Validate slot selection for workshops with multiple slots
+    const workshopSlots = preSelectedType === 'workshop' ? (preSelectedItem.slots || []) : [];
+    if (preSelectedType === 'workshop' && workshopSlots.length > 1 && selectedSlotIndex < 0) {
+      setErrorMessage('Please select a time slot to continue.');
+      return;
+    }
+
+    setStep(2);
+  };
+
+  const handleCopyUPI = () => {
+    navigator.clipboard.writeText('7093036262vignesh@ybl');
+    alert('UPI ID Copied!');
+  };
+
+  const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMessage('');
 
-    try {
-      // Validate slot selection for workshops with multiple slots
-      const workshopSlots = preSelectedType === 'workshop' ? (preSelectedItem.slots || []) : [];
-      if (preSelectedType === 'workshop' && workshopSlots.length > 1 && selectedSlotIndex < 0) {
-        setErrorMessage('Please select a time slot to continue.');
-        setLoading(false);
-        return;
-      }
+    if (transactionId.length < 8) {
+      setErrorMessage('Please enter a valid Transaction ID (minimum 8 characters).');
+      setLoading(false);
+      return;
+    }
 
-      // Build items selected structure
+    try {
+      const workshopSlots = preSelectedType === 'workshop' ? (preSelectedItem.slots || []) : [];
       const itemsSelected = {
         workshops: preSelectedType === 'workshop' ? [preSelectedItem._id || preSelectedItem.id] : [],
         competitions: preSelectedType === 'competition' ? [preSelectedItem._id || preSelectedItem.id] : [],
@@ -59,8 +80,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
       const userDetails = { fullName, email, phone, college, rollNo };
 
-      // 1. Initiate Payment Order on backend
-      const initiateRes = await fetch(`${API_BASE_URL}/api/payment/initiate`, {
+      const submitRes = await fetch(`${API_BASE_URL}/api/payment/submit-manual`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -68,71 +88,21 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
           itemsSelected,
           selectedSlotIndex: selectedSlotIndex >= 0 ? selectedSlotIndex : (workshopSlots.length === 1 ? 0 : -1),
           foodRequired: foodRequired ? 'yes' : 'no',
-          accommodationRequired: accommodationRequired ? 'yes' : 'no'
+          accommodationRequired: accommodationRequired ? 'yes' : 'no',
+          transactionId,
+          paymentApp
         })
       });
 
-      if (!initiateRes.ok) {
-        const errorData = await initiateRes.json();
-        throw new Error(errorData.message || 'Payment initiation failed.');
+      if (!submitRes.ok) {
+        const errorData = await submitRes.json();
+        throw new Error(errorData.message || 'Payment submission failed.');
       }
 
-      const orderData = await initiateRes.json();
-
-      // 2. Open Razorpay Checkout popup
-      const options = {
-        key: orderData.keyId,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: 'ADHYAYAN 2026',
-        description: `Registration for ${preSelectedItem.title || preSelectedItem.type}`,
-        order_id: orderData.orderId,
-        prefill: {
-          name: fullName,
-          email: email,
-          contact: phone
-        },
-        theme: {
-          color: '#0ea5e9' // sky-500
-        },
-        handler: async function (response: any) {
-          setLoading(true);
-          try {
-            // 3. Verify signature on backend
-            const verifyRes = await fetch(`${API_BASE_URL}/api/payment/verify`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                registrationId: orderData.registrationId,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
-              })
-            });
-
-            if (!verifyRes.ok) {
-              throw new Error('Payment verification failed.');
-            }
-
-            setSuccess(true);
-            alert("Registration and Payment Successful! A confirmation receipt has been sent to your email.");
-          } catch (verifyErr: any) {
-            setErrorMessage(verifyErr.message || 'Signature verification failed.');
-          } finally {
-            setLoading(false);
-          }
-        },
-        modal: {
-          ondismiss: function () {
-            setLoading(false);
-          }
-        }
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
+      setSuccess(true);
     } catch (err: any) {
       setErrorMessage(err.message || 'Something went wrong. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
@@ -152,16 +122,16 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
         {success ? (
           <div className="text-center py-10 space-y-6">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
               <ShieldCheck className="h-10 w-10" />
             </div>
-            <h3 className="text-2xl font-bold font-outfit text-white">Registration Successful!</h3>
+            <h3 className="text-2xl font-bold font-outfit text-white">Registration Pending</h3>
             <p className="text-slate-400 font-jakarta text-sm leading-relaxed max-w-xs mx-auto">
-              Your payment is verified. A receipt slip has been dispatched to your email address: <strong className="text-slate-200">{email}</strong>.
+              Your payment transaction is being verified by our team. A confirmation receipt will be sent to <strong className="text-slate-200">{email}</strong> upon successful verification.
             </p>
             <button
               onClick={onClose}
-              className="px-8 py-3 bg-green-500 hover:bg-green-400 text-black font-bold rounded-xl transition-all"
+              className="px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition-all"
             >
               Done
             </button>
@@ -189,7 +159,8 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {step === 1 ? (
+              <form onSubmit={handleNextStep} className="space-y-4">
               <div className="space-y-3">
                 <div className="relative">
                   <User className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
@@ -423,16 +394,79 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
               <button
                 type="submit"
-                disabled={loading}
                 className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-black font-extrabold rounded-xl transition-all shadow-lg shadow-sky-500/10 flex items-center justify-center"
               >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
-                ) : (
-                  'Pay & Register'
-                )}
+                Proceed to Payment
               </button>
             </form>
+            ) : (
+              <form onSubmit={handleFinalSubmit} className="space-y-5 animate-fade-in">
+                <div className="flex flex-col items-center justify-center text-center space-y-3 bg-slate-950 p-6 rounded-2xl border border-slate-800">
+                  <p className="text-sm text-slate-400">Scan the QR code below to pay:</p>
+                  <div className="bg-white p-3 rounded-2xl inline-block shadow-xl">
+                    <img src="/qr.jpeg" alt="Payment QR Code" className="w-48 h-48 object-cover rounded-xl" />
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-xs text-slate-500 mb-1">Or use UPI ID:</p>
+                    <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg">
+                      <span className="text-sm font-medium text-slate-200 tracking-wide">7093036262vignesh@ybl</span>
+                      <button type="button" onClick={handleCopyUPI} className="text-sky-400 hover:text-sky-300 ml-2 text-xs font-semibold">Copy</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-400 font-semibold pl-1">PAYMENT APP USED</label>
+                    <select
+                      value={paymentApp}
+                      onChange={(e) => setPaymentApp(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 px-4 py-3.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50 text-slate-200"
+                      required
+                    >
+                      <option value="PhonePe">PhonePe</option>
+                      <option value="GPay">Google Pay (GPay)</option>
+                      <option value="Paytm">Paytm</option>
+                      <option value="Other">Other UPI App</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-400 font-semibold pl-1">TRANSACTION ID / REFERENCE NO.</label>
+                    <input
+                      type="text"
+                      required
+                      value={transactionId}
+                      onChange={(e) => setTransactionId(e.target.value)}
+                      placeholder="e.g. 401234567890"
+                      className="w-full bg-slate-950 border border-slate-800 px-4 py-3.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50 placeholder-slate-600 text-white font-mono tracking-wider"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    disabled={loading}
+                    className="w-1/3 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl transition-all"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-2/3 py-4 bg-sky-500 hover:bg-sky-400 text-black font-extrabold rounded-xl transition-all shadow-lg shadow-sky-500/10 flex items-center justify-center"
+                  >
+                    {loading ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
+                    ) : (
+                      'Submit Payment'
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         )}
       </div>
