@@ -76,7 +76,7 @@ const HomePage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>ADHYAYAN 2026 | A Festival of Fire, A Symphony of Scholars</title>
+        <title>ADHYAYAN 2026 | Illuminating the Art of Medicine</title>
         <meta name="description" content="Join ADHYAYAN 2026 - Where dreams take shape, and ideas take flight. A celebration of thought, talent, and transformation in medical excellence." />
       </Helmet>
 
@@ -191,8 +191,8 @@ const HomePage: React.FC = () => {
               className="lg:col-span-6 space-y-6"
             >
               <h3 className="text-3xl font-outfit font-bold text-slate-900 leading-tight">
-                A Festival of Fire, <br />
-                <span className="bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent">A Symphony of Scholars</span>
+                Illuminating the Art of Medicine, <br />
+                <span className="bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent">Illuminate Minds, Ignite Innovations</span>
               </h3>
               <p className="text-slate-600 font-jakarta leading-relaxed">
                 The Incendios, true to their name, burn with the flame of excellence. They have woven a fest not with mere events, but with visions — of a world where learning is not a task, but a triumph; not a burden, but a bliss. ADHYAYAN is more than a gathering — it is a pilgrimage of intellect.
