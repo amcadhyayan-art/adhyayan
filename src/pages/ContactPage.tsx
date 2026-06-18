@@ -29,7 +29,7 @@ const ContactPage: React.FC = () => {
   ];
 
   const socialLinks = [
-    { icon: <Instagram className="h-5 w-5" />, label: 'Instagram', url: 'https://www.instagram.com/aadhyayan_.26?igsh=MXN0eDNkNnlsamtidQ==' },
+    { icon: <Instagram className="h-5 w-5" />, label: 'Instagram', url: 'https://www.instagram.com/adhyayan_.26?igsh=MXc4bnlmY3k5Nm9pcg==' },
   ];
 
   return (

@@ -135,8 +135,9 @@ const defaultWorkshops = [
 
 const WorkshopsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [workshops, setWorkshops] = useState<any[]>(defaultWorkshops);
+  const [workshops, setWorkshops] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<string>('All');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/workshops`)
@@ -151,10 +152,16 @@ const WorkshopsPage: React.FC = () => {
             id: w.id || w._id
           }));
           setWorkshops(mapped);
+        } else {
+          setWorkshops(defaultWorkshops);
         }
       })
       .catch((err) => {
         console.warn('API down, using local fallback workshops data.', err);
+        setWorkshops(defaultWorkshops);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
@@ -222,37 +229,67 @@ const WorkshopsPage: React.FC = () => {
           </div>
 
           {/* Grid cards */}
-          <motion.div 
-            layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredWorkshops.map((workshop) => (
-                <motion.div
-                  key={workshop.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex justify-center w-full max-w-sm"
-                  style={{ perspective: "1000px" }}
-                >
-                  <InteractiveTravelCard
-                    title={workshop.title}
-                    subtitle={`${workshop.date || 'Multiple Dates'} | ${workshop.venue}`}
-                    imageUrl={workshop.image}
-                    actionText={`Register - ₹${workshop.price}`}
-                    href={`/workshops/${workshop.id || workshop._id}`}
-                    onActionClick={() => {
-                      navigate(`/workshops/${workshop.id || workshop._id}`);
-                    }}
-                    className="w-full"
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          {isLoading ? (
+            <div className="flex flex-col justify-center items-center py-20 gap-4">
+              <motion.svg
+                width="120"
+                height="60"
+                viewBox="0 0 120 60"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-sky-600 drop-shadow-md"
+              >
+                <motion.path
+                  d="M 0 30 L 30 30 L 40 10 L 60 50 L 80 10 L 90 30 L 120 30"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  initial={{ pathLength: 0, opacity: 0.2 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    repeatType: "loop"
+                  }}
+                />
+              </motion.svg>
+              <p className="text-sky-600 font-montserrat font-semibold animate-pulse">Loading Workshops...</p>
+            </div>
+          ) : (
+            <motion.div 
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredWorkshops.map((workshop) => (
+                  <motion.div
+                    key={workshop.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.4 }}
+                    className="flex justify-center w-full max-w-sm"
+                    style={{ perspective: "1000px" }}
+                  >
+                    <InteractiveTravelCard
+                      title={workshop.title}
+                      subtitle={`${workshop.date || 'Multiple Dates'} | ${workshop.venue}`}
+                      imageUrl={workshop.image}
+                      actionText={`Register - ₹${workshop.price}`}
+                      href={`/workshops/${workshop.id || workshop._id}`}
+                      onActionClick={() => {
+                        navigate(`/workshops/${workshop.id || workshop._id}`);
+                      }}
+                      className="w-full"
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
         </div>
       </section>
 

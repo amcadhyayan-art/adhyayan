@@ -213,9 +213,10 @@ const SchedulePage: React.FC = () => {
             Get the complete schedule on your device for offline access
           </p>
           <a
-            href="https://drive.google.com/file/d/1HqNgHpxbeXy_EGfcB2nTaSNExgR0e3Ni/view?usp=sharing"
+            href="/AMC ADHYAYAN'26 Brochure.pdf"
             target="_blank"
             rel="noopener noreferrer"
+            download
           >
             <button className="btn-primary text-white">
               Download PDF Schedule

@@ -47,7 +47,7 @@ const SplashLogo: React.FC<SplashLogoProps> = ({ onComplete }) => {
             {/* White ECG Pulse Line below logo */}
             <div className="relative w-full h-48 pointer-events-none">
               <svg
-                className="w-full h-full text-red-600"
+                className="w-full h-full text-blue-500"
                 viewBox="0 0 1000 200"
                 preserveAspectRatio="none"
                 fill="none"
