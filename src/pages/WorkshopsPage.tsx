@@ -230,8 +230,32 @@ const WorkshopsPage: React.FC = () => {
 
           {/* Grid cards */}
           {isLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600"></div>
+            <div className="flex flex-col justify-center items-center py-20 gap-4">
+              <motion.svg
+                width="120"
+                height="60"
+                viewBox="0 0 120 60"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-sky-600 drop-shadow-md"
+              >
+                <motion.path
+                  d="M 0 30 L 30 30 L 40 10 L 60 50 L 80 10 L 90 30 L 120 30"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  initial={{ pathLength: 0, opacity: 0.2 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    repeatType: "loop"
+                  }}
+                />
+              </motion.svg>
+              <p className="text-sky-600 font-montserrat font-semibold animate-pulse">Loading Workshops...</p>
             </div>
           ) : (
             <motion.div 
