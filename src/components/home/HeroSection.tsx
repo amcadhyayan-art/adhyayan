@@ -144,9 +144,10 @@ const HeroSection: React.FC = () => {
               View Schedule
             </Link>
             <a 
-              href="https://drive.google.com/file/d/1HqNgHpxbeXy_EGfcB2nTaSNExgR0e3Ni/view?usp=sharing" 
+              href="/AMC ADHYAYAN'26 Brochure.pdf" 
               target="_blank" 
               rel="noopener noreferrer" 
+              download
               className="btn-secondary px-8 py-3.5"
             >
               Download Brochure
