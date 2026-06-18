@@ -11,6 +11,8 @@ interface Slot {
   time: string;
   date: string;
   paymentLink: string;
+  slotsTotal?: number;
+  slotsFilled?: number;
 }
 
 interface Workshop {
@@ -613,10 +615,18 @@ const WorkshopDetailsPage: React.FC = () => {
                   Available Slots
                 </h2>
                 <div className="space-y-4">
-                  {workshop.slots.map((slot) => (
+                  {workshop.slots.map((slot) => {
+                    const filled = slot.slotsFilled || 0;
+                    const total = slot.slotsTotal || 50;
+                    const isFull = filled >= total;
+                    const remaining = total - filled;
+
+                    return (
                     <div 
                       key={slot.id}
-                      className="border border-slate-200 rounded-lg p-4 hover:border-cyan-500/50 bg-white/5 transition-colors"
+                      className={`border border-slate-200 rounded-lg p-4 transition-colors ${
+                        isFull ? 'bg-slate-50 opacity-70 border-slate-300' : 'hover:border-cyan-500/50 bg-white/5'
+                      }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
@@ -625,16 +635,27 @@ const WorkshopDetailsPage: React.FC = () => {
                         </div>
                         <span className="text-slate-500">{slot.date}</span>
                       </div>
-                      <div className="flex items-center justify-end mt-4">
+                      <div className="flex items-center justify-between mt-4">
+                        <div className="text-sm">
+                          <span className={isFull ? 'text-red-500 font-bold' : 'text-emerald-600 font-bold'}>
+                            {isFull ? 'Slot Full' : `${remaining} slots left`}
+                          </span>
+                          <span className="text-slate-400 text-xs ml-2">({filled}/{total} booked)</span>
+                        </div>
                         <button 
                           onClick={() => setModalOpen(true)}
-                          className="btn-primary text-sm px-6 py-2"
+                          disabled={isFull}
+                          className={`text-sm px-6 py-2 rounded-md transition-colors ${
+                            isFull 
+                              ? 'bg-slate-200 text-slate-500 cursor-not-allowed' 
+                              : 'btn-primary'
+                          }`}
                         >
-                          Register Now
+                          {isFull ? 'Sold Out' : 'Register Now'}
                         </button>
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               </div>
             </div>

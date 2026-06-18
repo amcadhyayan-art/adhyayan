@@ -437,7 +437,7 @@ const CompetitionsPage: React.FC = () => {
                 )}
 
                 {/* Topics Array (integrated seminar) */}
-                {selectedCompetition.details.topics && (
+                {selectedCompetition.details.topics && selectedCompetition.details.topics.length > 0 && (
                   <div className="space-y-3">
                     <h4 className="font-outfit font-bold text-lg text-slate-900 flex items-center gap-2">
                       <Sparkles className="h-5 w-5 text-sky-600" />

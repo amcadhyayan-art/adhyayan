@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { X, Sparkles, User, Mail, Phone, Book, Hash, ShieldCheck, BedDouble, UtensilsCrossed, Clock } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 interface RegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -26,17 +32,13 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [foodRequired, setFoodRequired] = useState(false);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(-1);
 
-  const [step, setStep] = useState<1 | 2>(1);
-  const [transactionId, setTransactionId] = useState('');
-  const [paymentApp, setPaymentApp] = useState('PhonePe');
-
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen) return null;
 
-  const handleNextStep = (e: React.FormEvent) => {
+  const handleProceedToPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     
@@ -47,27 +49,9 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
       return;
     }
 
-    setStep(2);
-  };
-
-  const handleCopyUPI = () => {
-    navigator.clipboard.writeText('7093036262vignesh@ybl');
-    alert('UPI ID Copied!');
-  };
-
-  const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     setLoading(true);
-    setErrorMessage('');
-
-    if (transactionId.length < 8) {
-      setErrorMessage('Please enter a valid Transaction ID (minimum 8 characters).');
-      setLoading(false);
-      return;
-    }
 
     try {
-      const workshopSlots = preSelectedType === 'workshop' ? (preSelectedItem.slots || []) : [];
       const itemsSelected = {
         workshops: preSelectedType === 'workshop' ? [preSelectedItem._id || preSelectedItem.id] : [],
         competitions: preSelectedType === 'competition' ? [preSelectedItem._id || preSelectedItem.id] : [],
@@ -80,7 +64,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
       const userDetails = { fullName, email, phone, college, rollNo };
 
-      const submitRes = await fetch(`${API_BASE_URL}/api/payment/submit-manual`, {
+      const initRes = await fetch(`${API_BASE_URL}/api/payment/initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -88,21 +72,68 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
           itemsSelected,
           selectedSlotIndex: selectedSlotIndex >= 0 ? selectedSlotIndex : (workshopSlots.length === 1 ? 0 : -1),
           foodRequired: foodRequired ? 'yes' : 'no',
-          accommodationRequired: accommodationRequired ? 'yes' : 'no',
-          transactionId,
-          paymentApp
+          accommodationRequired: accommodationRequired ? 'yes' : 'no'
         })
       });
 
-      if (!submitRes.ok) {
-        const errorData = await submitRes.json();
-        throw new Error(errorData.message || 'Payment submission failed.');
+      if (!initRes.ok) {
+        const errorData = await initRes.json();
+        throw new Error(errorData.message || 'Payment initiation failed.');
       }
 
-      setSuccess(true);
+      const orderData = await initRes.json();
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "ADHYAYAN 2026",
+        description: `Registration for ${preSelectedItem.title || preSelectedItem.type}`,
+        order_id: orderData.orderId,
+        handler: async function (response: any) {
+          try {
+            setLoading(true);
+            const verifyRes = await fetch(`${API_BASE_URL}/api/payment/verify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                registrationId: orderData.registrationId,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+
+            if (!verifyRes.ok) {
+              const errorData = await verifyRes.json();
+              throw new Error(errorData.message || 'Payment verification failed.');
+            }
+
+            setSuccess(true);
+          } catch (err: any) {
+            setErrorMessage(err.message || 'Payment verification failed.');
+          } finally {
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: fullName,
+          email: email,
+          contact: phone
+        },
+        theme: {
+          color: "#0284c7" // sky-600
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        setErrorMessage(response.error.description || 'Payment failed.');
+      });
+      rzp.open();
+
     } catch (err: any) {
       setErrorMessage(err.message || 'Something went wrong. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -122,16 +153,18 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
         {success ? (
           <div className="text-center py-10 space-y-6">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <ShieldCheck className="h-10 w-10" />
             </div>
-            <h3 className="text-2xl font-bold font-outfit text-white">Registration Pending</h3>
+            <h3 className="text-2xl font-bold font-outfit text-white">Registration Successful!</h3>
             <p className="text-slate-400 font-jakarta text-sm leading-relaxed max-w-xs mx-auto">
-              Your payment transaction is being verified by our team. A confirmation receipt will be sent to <strong className="text-slate-200">{email}</strong> upon successful verification.
+              Your payment has been successfully processed and verified. A confirmation receipt will be sent to <strong className="text-slate-200">{email}</strong> shortly.
+              <br/><br/>
+              <span className="text-amber-400/90 font-medium text-xs">Note: Please also check your spam or junk folder for the confirmation email.</span>
             </p>
             <button
               onClick={onClose}
-              className="px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition-all"
+              className="px-8 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-xl transition-all"
             >
               Done
             </button>
@@ -159,8 +192,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
             )}
 
             {/* Form */}
-            {step === 1 ? (
-              <form onSubmit={handleNextStep} className="space-y-4">
+            <form onSubmit={handleProceedToPayment} className="space-y-4">
               <div className="space-y-3">
                 <div className="relative">
                   <User className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-500" />
@@ -230,7 +262,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     </p>
                     <div className="space-y-2">
                       {preSelectedItem.slots.map((slot: any, idx: number) => {
-                        const label  = typeof slot === 'string' ? slot.split(' | ')[0] : slot.label;
+                        const label  = typeof slot === 'string' ? slot.split(' | ')[0] : slot.label || slot.time;
                         const filled = typeof slot === 'object' ? (slot.slotsFilled ?? 0) : 0;
                         const total  = typeof slot === 'object' ? (slot.slotsTotal ?? 50) : 50;
                         const isFull = filled >= total;
@@ -394,79 +426,16 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-black font-extrabold rounded-xl transition-all shadow-lg shadow-sky-500/10 flex items-center justify-center"
               >
-                Proceed to Payment
+                {loading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
+                ) : (
+                  'Proceed to Payment'
+                )}
               </button>
             </form>
-            ) : (
-              <form onSubmit={handleFinalSubmit} className="space-y-5 animate-fade-in">
-                <div className="flex flex-col items-center justify-center text-center space-y-3 bg-slate-950 p-6 rounded-2xl border border-slate-800">
-                  <p className="text-sm text-slate-400">Scan the QR code below to pay:</p>
-                  <div className="bg-white p-3 rounded-2xl inline-block shadow-xl">
-                    <img src="/qr.jpeg" alt="Payment QR Code" className="w-48 h-48 object-cover rounded-xl" />
-                  </div>
-                  <div className="mt-4">
-                    <p className="text-xs text-slate-500 mb-1">Or use UPI ID:</p>
-                    <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg">
-                      <span className="text-sm font-medium text-slate-200 tracking-wide">7093036262vignesh@ybl</span>
-                      <button type="button" onClick={handleCopyUPI} className="text-sky-400 hover:text-sky-300 ml-2 text-xs font-semibold">Copy</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4 pt-2">
-                  <div className="space-y-1">
-                    <label className="text-xs text-slate-400 font-semibold pl-1">PAYMENT APP USED</label>
-                    <select
-                      value={paymentApp}
-                      onChange={(e) => setPaymentApp(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 px-4 py-3.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50 text-slate-200"
-                      required
-                    >
-                      <option value="PhonePe">PhonePe</option>
-                      <option value="GPay">Google Pay (GPay)</option>
-                      <option value="Paytm">Paytm</option>
-                      <option value="Other">Other UPI App</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs text-slate-400 font-semibold pl-1">TRANSACTION ID / REFERENCE NO.</label>
-                    <input
-                      type="text"
-                      required
-                      value={transactionId}
-                      onChange={(e) => setTransactionId(e.target.value)}
-                      placeholder="e.g. 401234567890"
-                      className="w-full bg-slate-950 border border-slate-800 px-4 py-3.5 rounded-xl text-sm focus:outline-none focus:border-sky-500/50 placeholder-slate-600 text-white font-mono tracking-wider"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    disabled={loading}
-                    className="w-1/3 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl transition-all"
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-2/3 py-4 bg-sky-500 hover:bg-sky-400 text-black font-extrabold rounded-xl transition-all shadow-lg shadow-sky-500/10 flex items-center justify-center"
-                  >
-                    {loading ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
-                    ) : (
-                      'Submit Payment'
-                    )}
-                  </button>
-                </div>
-              </form>
-            )}
           </div>
         )}
       </div>
