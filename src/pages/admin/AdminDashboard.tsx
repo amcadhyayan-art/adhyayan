@@ -129,7 +129,6 @@ const AdminDashboard: React.FC = () => {
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [itemTypeFilter, setItemTypeFilter] = useState<'all' | 'workshops' | 'competitions' | 'accommodation'>('all');
   const [selectedRegDetails, setSelectedRegDetails] = useState<Registration | null>(null);
-  const [isVerifying, setIsVerifying] = useState(false);
 
   // Modal Control States
   const [modalOpen, setModalOpen] = useState(false);
@@ -1735,12 +1734,24 @@ const AdminDashboard: React.FC = () => {
                     <div className="p-4 bg-slate-950/30 border border-slate-800/60 rounded-xl">
                       <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider block mb-2 font-outfit">Workshops</span>
                       <ul className="space-y-1 text-sm text-slate-300">
-                        {selectedRegDetails.itemsSelected.workshops.map(w => (
-                          <li key={w._id} className="flex justify-between items-center py-1 border-b border-slate-850 last:border-0">
-                            <span>🔧 {w.title}</span>
-                            <span className="text-slate-400">₹{w.price}</span>
+                        {selectedRegDetails.itemsSelected.workshops.map(w => {
+                          const slotIndex = selectedRegDetails.selectedSlotIndex;
+                          let slotLabel = '';
+                          if (slotIndex !== undefined && slotIndex >= 0 && w.slots && w.slots[slotIndex]) {
+                            const slotData = w.slots[slotIndex] as any;
+                            slotLabel = slotData.label || slotData.time || '';
+                          }
+                          return (
+                          <li key={w._id} className="flex flex-col py-1 border-b border-slate-850 last:border-0">
+                            <div className="flex justify-between items-center">
+                              <span>🔧 {w.title}</span>
+                              <span className="text-slate-400">₹{w.price}</span>
+                            </div>
+                            {slotLabel && (
+                              <span className="text-xs text-sky-400 mt-1 pl-5">⏱️ {slotLabel.split('|')[0]}</span>
+                            )}
                           </li>
-                        ))}
+                        )})}
                       </ul>
                     </div>
                   )}
@@ -1789,58 +1800,23 @@ const AdminDashboard: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-400">Payment App</span>
-                    <span className="font-semibold text-slate-300">{selectedRegDetails.payment.paymentApp || 'N/A'}</span>
+                    <span className="font-semibold text-slate-300">{selectedRegDetails.payment.paymentApp || (selectedRegDetails.payment.paymentId ? 'Razorpay' : 'N/A')}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-400">Transaction ID</span>
-                    <span className="font-mono text-xs text-sky-300 bg-sky-500/10 px-2 py-0.5 rounded">{selectedRegDetails.payment.transactionId || 'N/A'}</span>
+                    <span className="font-mono text-xs text-sky-300 bg-sky-500/10 px-2 py-0.5 rounded">{selectedRegDetails.payment.paymentId || selectedRegDetails.payment.transactionId || selectedRegDetails.payment.orderId || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-400">Verification Status</span>
                     <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                      selectedRegDetails.verified ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'
+                      selectedRegDetails.verified || selectedRegDetails.payment.status === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'
                     }`}>
-                      {selectedRegDetails.verified ? 'VERIFIED' : 'PENDING'}
+                      {selectedRegDetails.verified || selectedRegDetails.payment.status === 'success' ? 'VERIFIED' : (selectedRegDetails.payment.status || 'PENDING').toUpperCase()}
                     </span>
                   </div>
                 </div>
 
-                {!selectedRegDetails.verified && (
-                  <button 
-                    disabled={isVerifying}
-                    onClick={async () => {
-                      if (!confirm('Are you sure you want to verify this payment? A confirmation email will be sent.')) return;
-                      setIsVerifying(true);
-                      try {
-                        const adminToken = localStorage.getItem('adminToken');
-                        const res = await fetch(`${API_BASE_URL}/api/admin/registrations/${selectedRegDetails._id}/verify`, {
-                          method: 'PUT',
-                          headers: { Authorization: `Bearer ${adminToken}` }
-                        });
-                        if (!res.ok) throw new Error('Verification failed');
-                        alert('Registration verified and email sent!');
-                        // Update local state
-                        const updatedList = registrations.map(r => r._id === selectedRegDetails._id ? { ...r, verified: true, payment: { ...r.payment, status: 'success' } } : r);
-                        setRegistrations(updatedList);
-                        setSelectedRegDetails(updatedList.find(r => r._id === selectedRegDetails._id) || null);
-                      } catch (err: any) {
-                        alert(err.message);
-                      } finally {
-                        setIsVerifying(false);
-                      }
-                    }}
-                    className="w-full py-3.5 mt-4 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                  >
-                    {isVerifying ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
-                        Verifying...
-                      </>
-                    ) : (
-                      'Verify Payment Manually'
-                    )}
-                  </button>
-                )}
+
               </div>
             </div>
           </div>
