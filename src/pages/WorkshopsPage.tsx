@@ -135,8 +135,9 @@ const defaultWorkshops = [
 
 const WorkshopsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [workshops, setWorkshops] = useState<any[]>(defaultWorkshops);
+  const [workshops, setWorkshops] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<string>('All');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/workshops`)
@@ -151,10 +152,16 @@ const WorkshopsPage: React.FC = () => {
             id: w.id || w._id
           }));
           setWorkshops(mapped);
+        } else {
+          setWorkshops(defaultWorkshops);
         }
       })
       .catch((err) => {
         console.warn('API down, using local fallback workshops data.', err);
+        setWorkshops(defaultWorkshops);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
@@ -222,37 +229,43 @@ const WorkshopsPage: React.FC = () => {
           </div>
 
           {/* Grid cards */}
-          <motion.div 
-            layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredWorkshops.map((workshop) => (
-                <motion.div
-                  key={workshop.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex justify-center w-full max-w-sm"
-                  style={{ perspective: "1000px" }}
-                >
-                  <InteractiveTravelCard
-                    title={workshop.title}
-                    subtitle={`${workshop.date || 'Multiple Dates'} | ${workshop.venue}`}
-                    imageUrl={workshop.image}
-                    actionText={`Register - ₹${workshop.price}`}
-                    href={`/workshops/${workshop.id || workshop._id}`}
-                    onActionClick={() => {
-                      navigate(`/workshops/${workshop.id || workshop._id}`);
-                    }}
-                    className="w-full"
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600"></div>
+            </div>
+          ) : (
+            <motion.div 
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredWorkshops.map((workshop) => (
+                  <motion.div
+                    key={workshop.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.4 }}
+                    className="flex justify-center w-full max-w-sm"
+                    style={{ perspective: "1000px" }}
+                  >
+                    <InteractiveTravelCard
+                      title={workshop.title}
+                      subtitle={`${workshop.date || 'Multiple Dates'} | ${workshop.venue}`}
+                      imageUrl={workshop.image}
+                      actionText={`Register - ₹${workshop.price}`}
+                      href={`/workshops/${workshop.id || workshop._id}`}
+                      onActionClick={() => {
+                        navigate(`/workshops/${workshop.id || workshop._id}`);
+                      }}
+                      className="w-full"
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
         </div>
       </section>
 
