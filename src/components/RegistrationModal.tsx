@@ -97,7 +97,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                registrationId: orderData.registrationId,
+                registrationData: orderData.registrationData,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature
