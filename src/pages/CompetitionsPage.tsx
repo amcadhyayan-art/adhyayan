@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Video, MessageSquare, PenTool, Brain, Search, Presentation, Trophy, Calendar, Users, Clock, MapPin, X, Phone, Sparkles, AlertCircle, HelpCircle } from 'lucide-react';
+import { Camera, Video, MessageSquare, PenTool, Brain, Search, Presentation, Trophy, Calendar, Users, Clock, MapPin, X, Phone, Sparkles, AlertCircle, HelpCircle, Loader2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { InteractiveTravelCard } from '../components/ui/3d-card';
 import SectionTitle from '../components/ui/SectionTitle';
@@ -209,6 +209,7 @@ const CompetitionsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>(categoryFromUrl || 'All');
 
   const [competitions, setCompetitions] = useState<any[]>(defaultCompetitions);
+  const [isLoading, setIsLoading] = useState(true);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
 
   // Update active tab if URL changes while on the same page
@@ -223,6 +224,7 @@ const CompetitionsPage: React.FC = () => {
   }, [location.search]);
 
   useEffect(() => {
+    setIsLoading(true);
     fetch(`${API_BASE_URL}/api/competitions`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch');
@@ -266,6 +268,9 @@ const CompetitionsPage: React.FC = () => {
       })
       .catch((err) => {
         console.warn('API down, using local fallback competitions data.', err);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
@@ -353,35 +358,42 @@ const CompetitionsPage: React.FC = () => {
           </div>
 
           {/* Competitions Grid - 3D Cards */}
-          <motion.div 
-            layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredCompetitions.map((competition) => (
-                <motion.div
-                  key={competition.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex justify-center w-full max-w-sm"
-                  style={{ perspective: "1000px" }}
-                >
-                  <InteractiveTravelCard
-                    title={competition.title}
-                    subtitle={competition.category}
-                    imageUrl={competition.image}
-                    actionText="View Event Info"
-                    href="#"
-                    onActionClick={() => setSelectedCompetition(competition)}
-                    className="w-full"
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="h-10 w-10 text-sky-500 animate-spin" />
+              <p className="mt-4 text-slate-500 font-medium text-sm animate-pulse">Loading Competitions...</p>
+            </div>
+          ) : (
+            <motion.div 
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredCompetitions.map((competition) => (
+                  <motion.div
+                    key={competition.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.4 }}
+                    className="flex justify-center w-full max-w-sm"
+                    style={{ perspective: "1000px" }}
+                  >
+                    <InteractiveTravelCard
+                      title={competition.title}
+                      subtitle={competition.category}
+                      imageUrl={competition.image}
+                      actionText="View Event Info"
+                      href="#"
+                      onActionClick={() => setSelectedCompetition(competition)}
+                      className="w-full"
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
         </div>
       </section>
 
