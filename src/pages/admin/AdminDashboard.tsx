@@ -380,20 +380,97 @@ const AdminDashboard: React.FC = () => {
 
   // CSV Exporter
   const handleExportCSV = () => {
-    const headers = ['Name', 'Email', 'Phone', 'College', 'Payment Status', 'Amount Paid', 'Date Registered'];
-    const rows = filteredRegistrations.map(r => [
-      r.userDetails.fullName,
-      r.userDetails.email,
-      r.userDetails.phone,
-      r.userDetails.college,
-      r.payment.status,
-      r.payment.amount,
-      new Date(r.registeredAt).toLocaleDateString()
-    ]);
+    const headers = [
+      'Adhyayan ID',
+      'Name',
+      'Email',
+      'Phone',
+      'College',
+      'Roll No',
+      'Workshops Registered',
+      'Workshop Slot',
+      'Competitions Registered',
+      'Accommodation',
+      'Accommodation Days',
+      'Food Required',
+      'Accommodation Required',
+      'Payment Status',
+      'Amount Paid (₹)',
+      'Payment ID',
+      'Order ID',
+      'Payment App',
+      'Verified',
+      'Date Registered'
+    ];
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    
+    const escapeCSV = (val: any) => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      // Wrap in quotes if it contains commas, quotes, or newlines
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const rows = filteredRegistrations.map(r => {
+      // Workshops: join titles
+      const workshops = (r.itemsSelected?.workshops || [])
+        .map((w: any) => w?.title || w)
+        .filter(Boolean)
+        .join(' | ');
+
+      // Slot time
+      const slotIdx = r.selectedSlotIndex;
+      let slotText = 'N/A';
+      if (typeof slotIdx === 'number' && slotIdx >= 0 && r.itemsSelected?.workshops?.length > 0) {
+        const firstWorkshop = r.itemsSelected.workshops[0];
+        const slots = firstWorkshop?.slots;
+        if (slots && slots[slotIdx]) {
+          slotText = `${slots[slotIdx].startTime || ''} - ${slots[slotIdx].endTime || ''}`.trim() || `Slot ${slotIdx + 1}`;
+        } else {
+          slotText = `Slot ${slotIdx + 1}`;
+        }
+      }
+
+      // Competitions: join titles
+      const competitions = (r.itemsSelected?.competitions || [])
+        .map((c: any) => c?.title || c)
+        .filter(Boolean)
+        .join(' | ');
+
+      // Accommodation
+      const accOption = r.itemsSelected?.accommodation?.option;
+      const accName = accOption?.title || accOption?.name || (accOption ? 'Yes' : 'No');
+      const accDays = r.itemsSelected?.accommodation?.days || 0;
+
+      return [
+        escapeCSV(r.adhyayanId || 'N/A'),
+        escapeCSV(r.userDetails?.fullName),
+        escapeCSV(r.userDetails?.email),
+        escapeCSV(r.userDetails?.phone),
+        escapeCSV(r.userDetails?.college),
+        escapeCSV(r.userDetails?.rollNo || 'N/A'),
+        escapeCSV(workshops || 'None'),
+        escapeCSV(slotText),
+        escapeCSV(competitions || 'None'),
+        escapeCSV(accName),
+        escapeCSV(accDays > 0 ? accDays : 'N/A'),
+        escapeCSV(r.foodRequired === 'yes' ? 'Yes' : 'No'),
+        escapeCSV(r.accommodationRequired === 'yes' ? 'Yes' : 'No'),
+        escapeCSV(r.payment?.status || 'N/A'),
+        escapeCSV(r.payment?.amount || 0),
+        escapeCSV(r.payment?.paymentId || r.payment?.transactionId || 'N/A'),
+        escapeCSV(r.payment?.orderId || 'N/A'),
+        escapeCSV(r.payment?.paymentApp || 'Razorpay'),
+        escapeCSV(r.verified ? 'Yes' : 'No'),
+        escapeCSV(new Date(r.registeredAt).toLocaleString())
+      ].join(',');
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8,"
+      + [headers.map(escapeCSV).join(','), ...rows].join('\n');
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -402,6 +479,7 @@ const AdminDashboard: React.FC = () => {
     link.click();
     document.body.removeChild(link);
   };
+
 
   // Calculations for Overview Tab
   const totalRevenue = registrations
