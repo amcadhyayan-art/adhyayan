@@ -106,7 +106,7 @@ interface Registration {
 }
 
 const AdminDashboard: React.FC = () => {
-  type TabType = 'overview' | 'workshops' | 'competitions' | 'accommodation' | 'registrations' | 'accommodation-bookings';
+  type TabType = 'overview' | 'workshops' | 'competitions' | 'accommodation' | 'registrations' | 'accommodation-bookings' | 'razorpay-sync';
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     return (sessionStorage.getItem('adminActiveTab') as TabType) || 'overview';
   });
@@ -123,6 +123,7 @@ const AdminDashboard: React.FC = () => {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [accommodation, setAccommodation] = useState<Accommodation[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [razorpayPayments, setRazorpayPayments] = useState<any[]>([]);
 
   // Search/Filters State
   const [searchQuery, setSearchQuery] = useState('');
@@ -192,7 +193,24 @@ const AdminDashboard: React.FC = () => {
         return;
       }
       const registrationsData = await registrationsRes.json();
-      setRegistrations(registrationsData);
+      const normalizedRegistrations = registrationsData.map((reg: any) => ({
+        ...reg,
+        payment: {
+          ...reg.payment,
+          status: reg.payment?.status?.toLowerCase() || 'pending'
+        }
+      }));
+      setRegistrations(normalizedRegistrations);
+
+      try {
+        const rzRes = await fetch(`${API_BASE_URL}/api/admin/razorpay-payments`, { headers });
+        if (rzRes.ok) {
+          const rzData = await rzRes.json();
+          setRazorpayPayments(rzData);
+        }
+      } catch (err) {
+        console.error('Error fetching Razorpay payments:', err);
+      }
     } catch (error) {
       console.error('Error fetching admin dashboard data:', error);
     }
@@ -201,6 +219,31 @@ const AdminDashboard: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     navigate('/admin');
+  };
+
+  const handleSyncRazorpayManual = async (payment: any) => {
+    if (!window.confirm(`Are you sure you want to sync this payment and send an email to ${payment.email}?`)) return;
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+      const res = await fetch(`${API_BASE_URL}/api/admin/razorpay-sync-manual`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ payment })
+      });
+      if (res.ok) {
+        alert('Synced successfully and email sent!');
+        fetchData(); // refresh data
+      } else {
+        const err = await res.json();
+        alert('Error: ' + err.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Failed to sync.');
+    }
   };
 
   // CRUD Operations
@@ -578,6 +621,16 @@ const AdminDashboard: React.FC = () => {
             >
               <Users className="h-5 w-5" />
               Registrations
+            </button>
+
+            <button
+              onClick={() => setActiveTab('razorpay-sync')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                activeTab === 'razorpay-sync' ? 'bg-sky-500/10 text-sky-400 border-l-2 border-sky-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              <CreditCard className="h-5 w-5" />
+              Razorpay Audits
             </button>
           </nav>
         </div>
@@ -1053,6 +1106,82 @@ const AdminDashboard: React.FC = () => {
                     <tr>
                       <td colSpan={7} className="p-8 text-center text-slate-500">
                         No accommodation bookings found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Render Tab 7: Razorpay Audits */}
+        {activeTab === 'razorpay-sync' && (
+          <div className="space-y-6 animate-fade-in">
+            <div>
+              <h2 className="text-3xl font-extrabold text-white tracking-tight">Razorpay Audits</h2>
+              <p className="text-slate-400 text-sm mt-1">Raw successful payments from Razorpay to catch missing DB registrations.</p>
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-slate-950/45 border-b border-slate-800 text-slate-400 uppercase text-xs font-bold">
+                    <th className="p-4">Customer</th>
+                    <th className="p-4">Email / Phone</th>
+                    <th className="p-4">Amount</th>
+                    <th className="p-4">Payment ID</th>
+                    <th className="p-4">Date</th>
+                    <th className="p-4">DB Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {razorpayPayments.filter((rp: any) => rp.status === 'captured').map((rp: any) => {
+                    const existsInDb = registrations.find(r => r.payment?.paymentId === rp.id);
+                    return (
+                      <tr key={rp.id} className="hover:bg-slate-850/40 transition-colors">
+                        <td className="p-4 font-semibold text-white">
+                          {rp.notes?.name || rp.email || 'N/A'}
+                        </td>
+                        <td className="p-4">
+                          <div className="text-slate-300">{rp.email}</div>
+                          <div className="text-xs text-slate-500">{rp.contact}</div>
+                        </td>
+                        <td className="p-4 font-semibold text-sky-400">
+                          ₹{rp.amount / 100}
+                        </td>
+                        <td className="p-4 font-mono text-[10px] text-slate-500">
+                          {rp.id}
+                        </td>
+                        <td className="p-4 text-slate-500 text-xs">
+                          {new Date(rp.created_at * 1000).toLocaleString()}
+                        </td>
+                        <td className="p-4">
+                          {existsInDb ? (
+                            <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-green-500/10 text-green-400">
+                              Synced
+                            </span>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-500/10 text-red-400">
+                                Missing
+                              </span>
+                              <button
+                                onClick={() => handleSyncRazorpayManual(rp)}
+                                className="bg-sky-500 hover:bg-sky-600 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase transition-colors"
+                              >
+                                Sync & Email
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {razorpayPayments.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-slate-500">
+                        No Razorpay payments fetched yet.
                       </td>
                     </tr>
                   )}
