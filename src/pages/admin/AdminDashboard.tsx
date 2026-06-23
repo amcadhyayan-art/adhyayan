@@ -101,7 +101,9 @@ interface Registration {
     amount: number;
     status: string;
   };
+  selectedSlotIndex?: number;
   verified: boolean;
+  emailSent?: boolean;
   registeredAt: string;
 }
 
@@ -484,7 +486,7 @@ const AdminDashboard: React.FC = () => {
 
       // Accommodation
       const accOption = r.itemsSelected?.accommodation?.option;
-      const accName = accOption?.title || accOption?.name || (accOption ? 'Yes' : 'No');
+      const accName = accOption?.type || (accOption ? 'Yes' : 'No');
       const accDays = r.itemsSelected?.accommodation?.days || 0;
 
       return [
@@ -1137,7 +1139,11 @@ const AdminDashboard: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
                   {razorpayPayments.filter((rp: any) => rp.status === 'captured').map((rp: any) => {
-                    const existsInDb = registrations.find(r => r.payment?.paymentId === rp.id);
+                    const existsInDb = registrations.find(r => 
+                      (r.payment?.paymentId && r.payment.paymentId.trim() === rp.id) || 
+                      (r.payment?.transactionId && r.payment.transactionId.trim() === rp.id) ||
+                      (r.payment?.orderId && r.payment.orderId.trim() === rp.order_id)
+                    );
                     return (
                       <tr key={rp.id} className="hover:bg-slate-850/40 transition-colors">
                         <td className="p-4 font-semibold text-white">
