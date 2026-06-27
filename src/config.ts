@@ -1,7 +1,8 @@
 export const BACKEND_URLS = [
-  'https://adhyayanvbackend-d7bu.onrender.com',
-  'https://adhyayanvbackend-m03o.onrender.com',
-  'https://adhyayanvbackend-ogws.onrender.com'
+  'https://adhyayanvbackend-slcv.onrender.com',
+  'https://adhyayanvbackend-upqu.onrender.com',
+  'https://adhyayanvbackend-jhc5.onrender.com',
+  'https://adhyayanvbackend-2yjg.onrender.com'
 ];
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL || BACKEND_URLS[0];
